@@ -19,20 +19,38 @@ function Ads({ user }) {
   }
 
   return (
-    <div style={{ marginBottom: "20px", padding: "15px", background: "#fff", borderRadius: "8px", boxShadow: "0 2px 6px rgba(0,0,0,0.1)" }}>
-      <h2>Ads</h2>
+    <div
+      style={{
+        marginBottom: "20px",
+        padding: "15px",
+        background: "#fff",
+        borderRadius: "8px",
+        boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+      }}
+    >
+      {/* Header with image */}
+      <div style={{ textAlign: "center", marginBottom: "15px" }}>
+  <img
+    src="https://img.icons8.com/color/96/share.png"
+    alt="Sharing Flyer"
+    style={{ width: "60px", marginBottom: "10px" }}
+  />
+  <h2 style={{ fontSize: "22px", margin: 0, color: "#333" }}>Ads</h2>
+</div>
 
+
+      {/* Form Inputs */}
       <input
         placeholder="Ad Title"
         value={ad.title}
-        onChange={e => setAd({ ...ad, title: e.target.value })}
+        onChange={(e) => setAd({ ...ad, title: e.target.value })}
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       />
 
       <input
         placeholder="Ad Link"
         value={ad.link}
-        onChange={e => setAd({ ...ad, link: e.target.value })}
+        onChange={(e) => setAd({ ...ad, link: e.target.value })}
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       />
 
@@ -44,18 +62,54 @@ function Ads({ user }) {
 
       <button
         onClick={createAd}
-        style={{ width: "100%", padding: "10px", backgroundColor: "#1e90ff", color: "#fff", fontWeight: "bold", border: "none", borderRadius: "5px", cursor: "pointer" }}
+        style={{
+          width: "100%",
+          padding: "10px",
+          backgroundColor: "#1e90ff",
+          color: "#fff",
+          fontWeight: "bold",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
       >
         Create Ad
       </button>
 
-      <h3 style={{ marginTop: "20px" }}>Created Ads</h3>
-      <ul>
-        {db.ads.map(a => (
-          <li key={a.id} style={{ marginBottom: "10px", padding: "8px", border: "1px solid #eee", borderRadius: "5px" }}>
-            <strong>{a.title}</strong><br/>
-            {a.link && <a href={a.link} target="_blank" rel="noreferrer">{a.link}</a>}<br/>
-            {a.file && <img src={a.file} alt="" style={{ width: "100px", display: "block", marginTop: "5px" }} />}
+      {/* Existing Ads */}
+      <h3 style={{ marginTop: "20px", textAlign: "center" }}>Created Ads</h3>
+      <ul style={{ padding: 0, listStyle: "none" }}>
+        {db.ads.map((a) => (
+          <li
+            key={a.id}
+            style={{
+              marginBottom: "10px",
+              padding: "8px",
+              border: "1px solid #eee",
+              borderRadius: "5px",
+              textAlign: "left",
+            }}
+          >
+            <strong>{a.title}</strong>
+            <br />
+            {a.link && (
+              <a href={a.link} target="_blank" rel="noreferrer">
+                {a.link}
+              </a>
+            )}
+            <br />
+            {a.file && (
+              <img
+                src={a.file}
+                alt=""
+                style={{
+                  width: "100px",
+                  display: "block",
+                  marginTop: "5px",
+                  borderRadius: "4px",
+                }}
+              />
+            )}
           </li>
         ))}
       </ul>

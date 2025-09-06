@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { db, saveDB } from "../db";
 import { statesAndLGAs } from "../data/statesAndLGAs";
+import { AlertTriangle } from "lucide-react"; // ✅ Lucide icon
 
 function IncidentReports({ user }) {
   const [incident, setIncident] = useState({
@@ -38,34 +39,51 @@ function IncidentReports({ user }) {
   }
 
   return (
-    <div style={{ marginBottom: "20px", padding: "15px", background: "#fff", borderRadius: "8px", boxShadow: "0 2px 6px rgba(0,0,0,0.1)" }}>
-      <h2>Incident Reports</h2>
+    <div
+      style={{
+        marginBottom: "20px",
+        padding: "15px",
+        background: "#fff",
+        borderRadius: "8px",
+        boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+      }}
+    >
+      {/* Header with Lucide icon + title */}
+      <div style={{ textAlign: "center", marginBottom: "15px" }}>
+        <AlertTriangle size={50} color="#e63946" style={{ marginBottom: "10px" }} />
+        <h2 style={{ fontSize: "22px", margin: 0, color: "#333" }}>
+          Incident Reports
+        </h2>
+      </div>
 
+      {/* Incident Form */}
       <input
         placeholder="Incident Title"
         value={incident.title}
-        onChange={e => setIncident({ ...incident, title: e.target.value })}
+        onChange={(e) => setIncident({ ...incident, title: e.target.value })}
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       />
 
       <input
         type="date"
         value={incident.date}
-        onChange={e => setIncident({ ...incident, date: e.target.value })}
+        onChange={(e) => setIncident({ ...incident, date: e.target.value })}
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       />
 
       <textarea
         placeholder="Short Description"
         value={incident.description}
-        onChange={e => setIncident({ ...incident, description: e.target.value })}
+        onChange={(e) =>
+          setIncident({ ...incident, description: e.target.value })
+        }
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       />
 
       <input
         placeholder="Image URL"
         value={incident.imageUrl}
-        onChange={e => setIncident({ ...incident, imageUrl: e.target.value })}
+        onChange={(e) => setIncident({ ...incident, imageUrl: e.target.value })}
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       />
 
@@ -77,7 +95,9 @@ function IncidentReports({ user }) {
 
       <select
         value={incident.category}
-        onChange={e => setIncident({ ...incident, category: e.target.value })}
+        onChange={(e) =>
+          setIncident({ ...incident, category: e.target.value })
+        }
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       >
         <option value="">Select Category</option>
@@ -93,25 +113,32 @@ function IncidentReports({ user }) {
 
       <select
         value={incident.state}
-        onChange={e => setIncident({ ...incident, state: e.target.value, lga: "" })}
+        onChange={(e) =>
+          setIncident({ ...incident, state: e.target.value, lga: "" })
+        }
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       >
         <option value="">Select State</option>
-        {Object.keys(statesAndLGAs).map(state => (
-          <option key={state} value={state}>{state}</option>
+        {Object.keys(statesAndLGAs).map((state) => (
+          <option key={state} value={state}>
+            {state}
+          </option>
         ))}
       </select>
 
       <select
         value={incident.lga}
-        onChange={e => setIncident({ ...incident, lga: e.target.value })}
+        onChange={(e) => setIncident({ ...incident, lga: e.target.value })}
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
         disabled={!incident.state}
       >
         <option value="">Select LGA</option>
-        {incident.state && statesAndLGAs[incident.state].map(lga => (
-          <option key={lga} value={lga}>{lga}</option>
-        ))}
+        {incident.state &&
+          statesAndLGAs[incident.state].map((lga) => (
+            <option key={lga} value={lga}>
+              {lga}
+            </option>
+          ))}
       </select>
 
       <button
@@ -124,21 +151,62 @@ function IncidentReports({ user }) {
           fontWeight: "bold",
           border: "none",
           borderRadius: "5px",
-          cursor: "pointer"
+          cursor: "pointer",
         }}
       >
         Add Incident
       </button>
 
-      <h3 style={{ marginTop: "20px" }}>Existing Incidents</h3>
-      <ul>
-        {db.incidents.map(i => (
-          <li key={i.id} style={{ marginBottom: "10px", padding: "8px", border: "1px solid #eee", borderRadius: "5px" }}>
-            <strong>{i.title}</strong> ({i.date}) - {i.category}<br/>
-            {i.state && i.lga && <span>{i.state}, {i.lga}</span>}<br/>
-            {i.description}<br/>
-            {i.imageUrl && <img src={i.imageUrl} alt="" style={{ width: "100px", display: "block", marginTop: "5px" }} />}
-            {i.file && <img src={i.file} alt="" style={{ width: "100px", display: "block", marginTop: "5px" }} />}
+      {/* Existing Incidents */}
+      <h3 style={{ marginTop: "20px", textAlign: "center" }}>
+        Existing Incidents
+      </h3>
+      <ul style={{ padding: 0, listStyle: "none" }}>
+        {db.incidents.map((i) => (
+          <li
+            key={i.id}
+            style={{
+              marginBottom: "10px",
+              padding: "8px",
+              border: "1px solid #eee",
+              borderRadius: "5px",
+              textAlign: "left",
+            }}
+          >
+            <strong>{i.title}</strong> ({i.date}) - {i.category}
+            <br />
+            {i.state && i.lga && (
+              <span>
+                {i.state}, {i.lga}
+              </span>
+            )}
+            <br />
+            {i.description}
+            <br />
+            {i.imageUrl && (
+              <img
+                src={i.imageUrl}
+                alt=""
+                style={{
+                  width: "100px",
+                  display: "block",
+                  marginTop: "5px",
+                  borderRadius: "4px",
+                }}
+              />
+            )}
+            {i.file && (
+              <img
+                src={i.file}
+                alt=""
+                style={{
+                  width: "100px",
+                  display: "block",
+                  marginTop: "5px",
+                  borderRadius: "4px",
+                }}
+              />
+            )}
           </li>
         ))}
       </ul>
