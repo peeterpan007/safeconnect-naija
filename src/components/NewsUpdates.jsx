@@ -1,14 +1,43 @@
 import React, { useState } from "react";
 import { db, saveDB } from "../db";
-import { Newspaper } from "lucide-react"; // ✅ Lucide icon
+import { Newspaper } from "lucide-react";
+
+// Cloudinary unsigned upload settings
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
+const UPLOAD_PRESET = "your_upload_preset"; // replace with your Cloudinary preset
 
 function NewsUpdate({ user }) {
-  const [news, setNews] = useState({ title: "", description: "", link: "" });
+  const [news, setNews] = useState({ title: "", description: "", link: "", file: null });
+  const [loading, setLoading] = useState(false);
 
   function addNews() {
     db.news.push({ id: Date.now().toString(), ...news });
     saveDB(db);
-    setNews({ title: "", description: "", link: "" });
+    setNews({ title: "", description: "", link: "", file: null });
+  }
+
+  async function handleFileChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    try {
+      const res = await fetch(CLOUDINARY_URL, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      setNews({ ...news, file: data.secure_url });
+    } catch (err) {
+      console.error("Error uploading to Cloudinary:", err);
+      alert("Image upload failed!");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -48,6 +77,21 @@ function NewsUpdate({ user }) {
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       />
 
+      <input
+        type="file"
+        onChange={handleFileChange}
+        style={{ width: "100%", marginBottom: "10px" }}
+      />
+
+      {loading && <p>Uploading image...</p>}
+      {news.file && (
+        <img
+          src={news.file}
+          alt="News"
+          style={{ width: "100px", display: "block", marginTop: "5px", borderRadius: "4px" }}
+        />
+      )}
+
       <button
         onClick={addNews}
         style={{
@@ -85,6 +129,14 @@ function NewsUpdate({ user }) {
               <a href={n.link} target="_blank" rel="noreferrer">
                 {n.link}
               </a>
+            )}
+            <br />
+            {n.file && (
+              <img
+                src={n.file}
+                alt="News"
+                style={{ width: "100px", display: "block", marginTop: "5px", borderRadius: "4px" }}
+              />
             )}
           </li>
         ))}

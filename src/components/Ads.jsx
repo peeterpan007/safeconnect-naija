@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import { db, saveDB } from "../db";
 
+// Cloudinary unsigned upload settings
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
+const UPLOAD_PRESET = "your_upload_preset"; // replace with your Cloudinary preset
+
 function Ads({ user }) {
   const [ad, setAd] = useState({ title: "", link: "", file: null });
+  const [loading, setLoading] = useState(false);
 
   function createAd() {
     db.ads.push({ id: Date.now().toString(), clicks: 0, impressions: 0, ...ad });
@@ -10,12 +15,28 @@ function Ads({ user }) {
     setAd({ title: "", link: "", file: null });
   }
 
-  function handleFileChange(e) {
+  async function handleFileChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setAd({ ...ad, file: reader.result });
-    reader.readAsDataURL(file);
+
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    try {
+      const res = await fetch(CLOUDINARY_URL, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      setAd({ ...ad, file: data.secure_url });
+    } catch (err) {
+      console.error("Error uploading to Cloudinary:", err);
+      alert("Image upload failed!");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -28,16 +49,15 @@ function Ads({ user }) {
         boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
       }}
     >
-      {/* Header with image */}
+      {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "15px" }}>
-  <img
-    src="https://img.icons8.com/color/96/share.png"
-    alt="Sharing Flyer"
-    style={{ width: "60px", marginBottom: "10px" }}
-  />
-  <h2 style={{ fontSize: "22px", margin: 0, color: "#333" }}>Ads</h2>
-</div>
-
+        <img
+          src="https://img.icons8.com/color/96/share.png"
+          alt="Sharing Flyer"
+          style={{ width: "60px", marginBottom: "10px" }}
+        />
+        <h2 style={{ fontSize: "22px", margin: 0, color: "#333" }}>Ads</h2>
+      </div>
 
       {/* Form Inputs */}
       <input
@@ -59,6 +79,14 @@ function Ads({ user }) {
         onChange={handleFileChange}
         style={{ width: "100%", marginBottom: "10px" }}
       />
+      {loading && <p>Uploading image...</p>}
+      {ad.file && (
+        <img
+          src={ad.file}
+          alt="Uploaded"
+          style={{ width: "100px", display: "block", marginTop: "5px", borderRadius: "4px" }}
+        />
+      )}
 
       <button
         onClick={createAd}
@@ -102,12 +130,7 @@ function Ads({ user }) {
               <img
                 src={a.file}
                 alt=""
-                style={{
-                  width: "100px",
-                  display: "block",
-                  marginTop: "5px",
-                  borderRadius: "4px",
-                }}
+                style={{ width: "100px", display: "block", marginTop: "5px", borderRadius: "4px" }}
               />
             )}
           </li>

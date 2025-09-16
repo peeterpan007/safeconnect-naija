@@ -1,8 +1,13 @@
 import React, { useState } from "react";
 import { db, saveDB } from "../db";
 
+// Cloudinary unsigned upload settings
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
+const UPLOAD_PRESET = "your_upload_preset"; // replace with your Cloudinary preset
+
 function LocalEventsAndBusiness({ user }) {
   const [item, setItem] = useState({ title: "", link: "", file: null, category: "" });
+  const [loading, setLoading] = useState(false);
 
   function addItem() {
     db.localEvents.push({ id: Date.now().toString(), ...item });
@@ -10,12 +15,28 @@ function LocalEventsAndBusiness({ user }) {
     setItem({ title: "", link: "", file: null, category: "" });
   }
 
-  function handleFileChange(e) {
+  async function handleFileChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setItem({ ...item, file: reader.result });
-    reader.readAsDataURL(file);
+
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    try {
+      const res = await fetch(CLOUDINARY_URL, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      setItem({ ...item, file: data.secure_url });
+    } catch (err) {
+      console.error("Error uploading to Cloudinary:", err);
+      alert("Image upload failed!");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -28,7 +49,7 @@ function LocalEventsAndBusiness({ user }) {
         boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
       }}
     >
-      {/* Header with image */}
+      {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "15px" }}>
         <img
           src="https://img.icons8.com/color/96/shop.png"
@@ -74,6 +95,15 @@ function LocalEventsAndBusiness({ user }) {
         style={{ width: "100%", marginBottom: "10px" }}
       />
 
+      {loading && <p>Uploading image...</p>}
+      {item.file && (
+        <img
+          src={item.file}
+          alt="Uploaded"
+          style={{ width: "100px", display: "block", marginTop: "5px", borderRadius: "4px" }}
+        />
+      )}
+
       <button
         onClick={addItem}
         style={{
@@ -115,7 +145,7 @@ function LocalEventsAndBusiness({ user }) {
             {i.file && (
               <img
                 src={i.file}
-                alt=""
+                alt="Uploaded"
                 style={{
                   width: "100px",
                   display: "block",

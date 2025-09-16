@@ -2,8 +2,13 @@ import React, { useState } from "react";
 import { db, saveDB } from "../db";
 import { MessageCircle } from "lucide-react"; // ✅ Lucide icon
 
+// Cloudinary unsigned upload settings
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
+const UPLOAD_PRESET = "your_upload_preset"; // replace with your Cloudinary preset
+
 function CommunityConnect({ user }) {
   const [post, setPost] = useState({ text: "", file: null, link: "" });
+  const [loading, setLoading] = useState(false);
 
   function addPost() {
     db.community.push({ id: Date.now().toString(), ...post });
@@ -11,12 +16,28 @@ function CommunityConnect({ user }) {
     setPost({ text: "", file: null, link: "" });
   }
 
-  function handleFileChange(e) {
+  async function handleFileChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setPost({ ...post, file: reader.result });
-    reader.readAsDataURL(file);
+
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    try {
+      const res = await fetch(CLOUDINARY_URL, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      setPost({ ...post, file: data.secure_url });
+    } catch (err) {
+      console.error("Error uploading to Cloudinary:", err);
+      alert("Image upload failed!");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -29,12 +50,13 @@ function CommunityConnect({ user }) {
         boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
       }}
     >
-      {/* Header with Lucide icon + title */}
+      {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "15px" }}>
         <MessageCircle size={50} color="#4ade80" style={{ marginBottom: "10px" }} />
         <h2 style={{ fontSize: "22px", margin: 0, color: "#333" }}>Community Connect</h2>
       </div>
 
+      {/* Post Inputs */}
       <textarea
         placeholder="Share your opinion"
         value={post.text}
@@ -55,6 +77,15 @@ function CommunityConnect({ user }) {
         style={{ width: "100%", marginBottom: "10px" }}
       />
 
+      {loading && <p>Uploading image...</p>}
+      {post.file && (
+        <img
+          src={post.file}
+          alt="Uploaded"
+          style={{ width: "100px", display: "block", marginTop: "5px", borderRadius: "4px" }}
+        />
+      )}
+
       <button
         onClick={addPost}
         style={{
@@ -71,6 +102,7 @@ function CommunityConnect({ user }) {
         Post
       </button>
 
+      {/* Existing Posts */}
       <h3 style={{ marginTop: "20px", textAlign: "center" }}>Community Posts</h3>
       <ul style={{ padding: 0, listStyle: "none" }}>
         {db.community.map((c) => (
@@ -96,12 +128,7 @@ function CommunityConnect({ user }) {
               <img
                 src={c.file}
                 alt=""
-                style={{
-                  width: "100px",
-                  display: "block",
-                  marginTop: "5px",
-                  borderRadius: "4px",
-                }}
+                style={{ width: "100px", display: "block", marginTop: "5px", borderRadius: "4px" }}
               />
             )}
           </li>
