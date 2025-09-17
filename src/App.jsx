@@ -35,11 +35,13 @@ function App() {
           <h1 style={{ margin: 0, fontSize: "32px", fontWeight: "bold" }}>
             SafeConnect Naija
           </h1>
-          <img
-            src={logo}
-            alt="SafeConnect Logo"
-            style={{ height: "50px", borderRadius: "6px" }}
-          />
+          <a href="/" style={{ display: "inline-block" }}>
+            <img
+              src={logo}
+              alt="SafeConnect Logo"
+              style={{ height: "70px", borderRadius: "6px", cursor: "pointer" }}
+            />
+          </a>
         </div>
         <p style={{ marginTop: 10, fontSize: 18, color: "#e0f0ff" }}>
           Building safer, stronger communities across Nigeria
