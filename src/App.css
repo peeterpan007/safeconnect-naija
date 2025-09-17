@@ -61,6 +61,13 @@ header p {
   color: #e0f0ff;
 }
 
+header img.header-logo {
+  width: 120px;
+  height: auto;
+  display: block;
+  margin: 0 auto 15px;
+}
+
 /* Footer / CTA */
 .footer {
   text-align: center;
@@ -132,7 +139,7 @@ ul li {
 .leaflet-container {
   border-radius: 10px;
   width: 100%;
-  height: 200px;
+  height: 250px; /* slightly taller so map is visible */
 }
 
 /* Images in posts/cards */
