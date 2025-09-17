@@ -10,6 +10,7 @@ import L from "leaflet";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
 const UPLOAD_PRESET = "your_upload_preset";
 
+// Leaflet icon fix
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -20,6 +21,43 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
+// Predefined incident titles
+const INCIDENT_TITLES = [
+  "Armed Robbery",
+  "Communal clash",
+  "Motor accident",
+  "Communal attack",
+  "Flooding",
+  "Road block",
+  "Rooad works",
+  "Burglary (breaking and entering)",
+  "Shoplifting",
+  "Car theft",
+  "Pickpocketing",
+  "Vandalism",
+  "Arson (Starting a fire)",
+  "Trespassing",
+  "Looting",
+  "Kidnapping",
+  "Assault",
+  "Battery",
+  "Homicide (murder)",
+  "Manslaughter",
+  "Domestic violence",
+  "Sexual assault",
+  "Child abuse",
+  "Human trafficking",
+  "Stalking",
+  "Extortion",
+  "Public Order & Miscellaneous Offenses",
+  "Drug trafficking",
+  "Illegal possession of firearms",
+  "Smuggling",
+  "Hit and run",
+  "Drunk driving (DUI)",
+  "Rioting",
+];
+
 function IncidentReports({ user }) {
   const [incident, setIncident] = useState({
     title: "",
@@ -28,14 +66,15 @@ function IncidentReports({ user }) {
     timestamp: "",
     description: "",
     imageUrl: "",
-    category: "",
     state: "",
     lga: "",
     location: null,
     address: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [watchId, setWatchId] = useState(null);
+  const [useCustomTitle, setUseCustomTitle] = useState(false);
 
   // Live timestamp every second
   useEffect(() => {
@@ -57,7 +96,7 @@ function IncidentReports({ user }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Start live GPS tracking
+  // GPS tracking
   const startTracking = () => {
     if (!navigator.geolocation) {
       alert("Geolocation not supported");
@@ -97,7 +136,6 @@ function IncidentReports({ user }) {
     setWatchId(id);
   };
 
-  // Stop live GPS tracking
   const stopTracking = () => {
     if (watchId !== null) {
       navigator.geolocation.clearWatch(watchId);
@@ -117,12 +155,12 @@ function IncidentReports({ user }) {
       timestamp: "",
       description: "",
       imageUrl: "",
-      category: "",
       state: "",
       lga: "",
       location: null,
       address: "",
     });
+    setUseCustomTitle(false);
     stopTracking();
   };
 
@@ -155,8 +193,40 @@ function IncidentReports({ user }) {
         <p style={{ fontWeight: "bold", color: "#555" }}>🕒 Live Time: {incident.timestamp}</p>
       </div>
 
-      {/* Form */}
-      <input placeholder="Incident Title" value={incident.title} onChange={(e) => setIncident({ ...incident, title: e.target.value })} style={{ width: "100%", marginBottom: "10px", padding: "8px" }} />
+      {/* Incident Title */}
+      <div style={{ marginBottom: "10px" }}>
+        {!useCustomTitle ? (
+          <select
+            value={incident.title}
+            onChange={(e) => {
+              if (e.target.value === "Other") {
+                setIncident({ ...incident, title: "" });
+                setUseCustomTitle(true);
+              } else {
+                setIncident({ ...incident, title: e.target.value });
+              }
+            }}
+            style={{ width: "100%", padding: "8px" }}
+          >
+            <option value="">Select Incident Title</option>
+            {INCIDENT_TITLES.map((title) => (
+              <option key={title} value={title}>
+                {title}
+              </option>
+            ))}
+            <option value="Other">Other (type below)</option>
+          </select>
+        ) : (
+          <input
+            type="text"
+            placeholder="Enter custom incident title"
+            value={incident.title}
+            onChange={(e) => setIncident({ ...incident, title: e.target.value })}
+            style={{ width: "100%", padding: "8px" }}
+          />
+        )}
+      </div>
+
       <input type="date" value={incident.date} onChange={(e) => setIncident({ ...incident, date: e.target.value })} style={{ width: "100%", marginBottom: "10px", padding: "8px" }} />
       <textarea placeholder="Short Description" value={incident.description} onChange={(e) => setIncident({ ...incident, description: e.target.value })} style={{ width: "100%", marginBottom: "10px", padding: "8px" }} />
 
@@ -182,26 +252,18 @@ function IncidentReports({ user }) {
         </MapContainer>
       )}
 
-      <select value={incident.category} onChange={(e) => setIncident({ ...incident, category: e.target.value })} style={{ width: "100%", marginBottom: "10px", padding: "8px" }}>
-        <option value="">Select Category</option>
-        <option>Robbery</option>
-        <option>Kidnapping</option>
-        <option>Communal clash</option>
-        <option>Flooding</option>
-        <option>Road block</option>
-        <option>Motor accident</option>
-        <option>Communal attack</option>
-        <option>Other Alerts</option>
-      </select>
-
       <select value={incident.state} onChange={(e) => setIncident({ ...incident, state: e.target.value, lga: "" })} style={{ width: "100%", marginBottom: "10px", padding: "8px" }}>
         <option value="">Select State</option>
-        {Object.keys(statesAndLGAs).map((state) => (<option key={state} value={state}>{state}</option>))}
+        {Object.keys(statesAndLGAs).map((state) => (
+          <option key={state} value={state}>{state}</option>
+        ))}
       </select>
 
       <select value={incident.lga} onChange={(e) => setIncident({ ...incident, lga: e.target.value })} disabled={!incident.state} style={{ width: "100%", marginBottom: "10px", padding: "8px" }}>
         <option value="">Select LGA</option>
-        {incident.state && statesAndLGAs[incident.state].map((lga) => (<option key={lga} value={lga}>{lga}</option>))}
+        {incident.state && statesAndLGAs[incident.state].map((lga) => (
+          <option key={lga} value={lga}>{lga}</option>
+        ))}
       </select>
 
       <button onClick={addIncident} style={{ width: "100%", padding: "10px", backgroundColor: "#1e90ff", color: "#fff", fontWeight: "bold", border: "none", borderRadius: "5px", cursor: "pointer" }}>
