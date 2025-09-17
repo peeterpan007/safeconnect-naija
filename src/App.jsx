@@ -16,7 +16,7 @@ function App() {
       {/* Header */}
       <header
         style={{
-          backgroundColor: "#1e90ff",
+          backgroundColor: "#311effff",
           padding: "30px 20px",
           color: "#fff",
           borderRadius: 10,
