@@ -5,6 +5,7 @@ import Ads from "./components/Ads";
 import CommunityConnect from "./components/CommunityConnect";
 import NewsUpdate from "./components/NewsUpdates";
 import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
+import logo from "./assets/SafeConnect.png"; // Import your logo
 import "./App.css";
 
 const user = { id: "1", area: "NY", interests: ["security", "home services"] };
@@ -15,16 +16,34 @@ function App() {
       {/* Header */}
       <header
         style={{
-          textAlign: "center",
           backgroundColor: "#1e90ff",
-          padding: 30,
+          padding: "30px 20px",
           color: "#fff",
           borderRadius: 10,
           marginBottom: 30,
+          boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
         }}
       >
-        <h1>SafeConnect Naija</h1>
-        <p>Building safer, stronger communities across Nigeria</p>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "15px",
+          }}
+        >
+          <h1 style={{ margin: 0, fontSize: "32px", fontWeight: "bold" }}>
+            SafeConnect Naija
+          </h1>
+          <img
+            src={logo}
+            alt="SafeConnect Logo"
+            style={{ height: "50px", borderRadius: "6px" }}
+          />
+        </div>
+        <p style={{ marginTop: 10, fontSize: 18, color: "#e0f0ff" }}>
+          Building safer, stronger communities across Nigeria
+        </p>
       </header>
 
       {/* Main Content */}
