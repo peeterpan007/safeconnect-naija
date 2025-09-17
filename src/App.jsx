@@ -5,7 +5,7 @@ import Ads from "./components/Ads";
 import CommunityConnect from "./components/CommunityConnect";
 import NewsUpdate from "./components/NewsUpdates";
 import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
-import logo from "./assets/SafeConnect.png"; // Import your logo
+import logo from "./assets/Connect1.png"; // Import your logo
 import "./App.css";
 
 const user = { id: "1", area: "NY", interests: ["security", "home services"] };
