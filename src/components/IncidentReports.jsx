@@ -188,7 +188,7 @@ function IncidentReports({ user }) {
         <img
           src={IncidentReportingLogo}
           alt="Incident Reporting"
-          style={{ height: "70px", objectFit: "contain" }} // ✅ Bigger logo
+          style={{ height: "170px", objectFit: "contain" }} // ✅ Bigger logo
         />
       </div>
 
