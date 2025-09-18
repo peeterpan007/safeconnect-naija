@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { db, saveDB } from "../db";
-import { Newspaper } from "lucide-react";
+import NewsLogo from "../assets/NewsUpdate.png"; // ✅ new logo
 
-// Cloudinary unsigned upload settings
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
-const UPLOAD_PRESET = "your_upload_preset"; // replace with your Cloudinary preset
+const UPLOAD_PRESET = "your_upload_preset";
 
 function NewsUpdate({ user }) {
   const [news, setNews] = useState({ title: "", description: "", link: "", file: null });
@@ -26,10 +25,7 @@ function NewsUpdate({ user }) {
     formData.append("upload_preset", UPLOAD_PRESET);
 
     try {
-      const res = await fetch(CLOUDINARY_URL, {
-        method: "POST",
-        body: formData,
-      });
+      const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData });
       const data = await res.json();
       setNews({ ...news, file: data.secure_url });
     } catch (err) {
@@ -41,19 +37,10 @@ function NewsUpdate({ user }) {
   }
 
   return (
-    <div
-      style={{
-        marginBottom: "20px",
-        padding: "15px",
-        background: "#fff",
-        borderRadius: "8px",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-      }}
-    >
-      {/* Header with icon */}
+    <div className="card">
+      {/* Logo Header */}
       <div style={{ textAlign: "center", marginBottom: "15px" }}>
-        <Newspaper size={50} color="#facc15" style={{ marginBottom: "10px" }} />
-        <h2 style={{ fontSize: "22px", margin: 0, color: "#333" }}>News Update</h2>
+        <img src={NewsLogo} alt="News Update" style={{ width: "120px" }} />
       </div>
 
       <input
@@ -62,14 +49,12 @@ function NewsUpdate({ user }) {
         onChange={(e) => setNews({ ...news, title: e.target.value })}
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       />
-
       <textarea
         placeholder="Description"
         value={news.description}
         onChange={(e) => setNews({ ...news, description: e.target.value })}
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       />
-
       <input
         placeholder="Link (optional)"
         value={news.link}
@@ -77,27 +62,16 @@ function NewsUpdate({ user }) {
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       />
 
-      <input
-        type="file"
-        onChange={handleFileChange}
-        style={{ width: "100%", marginBottom: "10px" }}
-      />
-
+      <input type="file" onChange={handleFileChange} style={{ width: "100%", marginBottom: "10px" }} />
       {loading && <p>Uploading image...</p>}
-      {news.file && (
-        <img
-          src={news.file}
-          alt="News"
-          style={{ width: "100px", display: "block", marginTop: "5px", borderRadius: "4px" }}
-        />
-      )}
+      {news.file && <img src={news.file} alt="News" style={{ width: "100px", marginTop: "5px", borderRadius: "4px" }} />}
 
       <button
         onClick={addNews}
         style={{
           width: "100%",
           padding: "10px",
-          backgroundColor: "#1e90ff",
+          backgroundColor: "#0707be",
           color: "#fff",
           fontWeight: "bold",
           border: "none",
@@ -131,13 +105,7 @@ function NewsUpdate({ user }) {
               </a>
             )}
             <br />
-            {n.file && (
-              <img
-                src={n.file}
-                alt="News"
-                style={{ width: "100px", display: "block", marginTop: "5px", borderRadius: "4px" }}
-              />
-            )}
+            {n.file && <img src={n.file} alt="News" style={{ width: "100px", marginTop: "5px", borderRadius: "4px" }} />}
           </li>
         ))}
       </ul>

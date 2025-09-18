@@ -182,7 +182,7 @@ function IncidentReports({ user }) {
     <div style={{ marginBottom: "20px", padding: "15px", background: "#fff", borderRadius: "8px", boxShadow: "0 2px 6px rgba(0,0,0,0.1)" }}>
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "15px" }}>
-        <AlertTriangle size={50} color="#e63946" style={{ marginBottom: "10px" }} />
+        <AlertTriangle size={50} color="#ae0a17ff" style={{ marginBottom: "10px" }} />
         <h2 style={{ fontSize: "22px", margin: 0, color: "#333" }}>Incident Reports</h2>
         <p style={{ fontWeight: "bold", color: "#555" }}>🕒 Live Time: {incident.timestamp}</p>
       </div>
@@ -230,8 +230,8 @@ function IncidentReports({ user }) {
 
       {/* GPS Buttons */}
       <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
-        <button type="button" onClick={startTracking} style={{ flex: 1, padding: "10px", backgroundColor: "#10b981", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}>Start Live Location 🌍</button>
-        <button type="button" onClick={stopTracking} style={{ flex: 1, padding: "10px", backgroundColor: "#ef4444", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}>Stop Tracking ⏹️</button>
+        <button type="button" onClick={startTracking} style={{ flex: 1, padding: "10px", backgroundColor: "#066c4aff", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}>Start Live Location 🌍</button>
+        <button type="button" onClick={stopTracking} style={{ flex: 1, padding: "10px", backgroundColor: "#b70909ff", color: "#fff", border: "none", borderRadius: "5px", cursor: "pointer" }}>Stop Tracking ⏹️</button>
       </div>
 
       {/* Map */}
@@ -255,7 +255,7 @@ function IncidentReports({ user }) {
         {incident.state && statesAndLGAs[incident.state].map((lga) => (<option key={lga} value={lga}>{lga}</option>))}
       </select>
 
-      <button onClick={addIncident} style={{ width: "100%", padding: "10px", backgroundColor: "#1e90ff", color: "#fff", fontWeight: "bold", border: "none", borderRadius: "5px", cursor: "pointer" }}>Add Incident</button>
+      <button onClick={addIncident} style={{ width: "100%", padding: "10px", backgroundColor: "#0c0ab1ff", color: "#fff", fontWeight: "bold", border: "none", borderRadius: "5px", cursor: "pointer" }}>Add Incident</button>
     </div>
   );
 }
