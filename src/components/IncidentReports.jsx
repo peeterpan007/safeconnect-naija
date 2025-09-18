@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { db, saveDB } from "../db";
 import { statesAndLGAs } from "../data/statesAndLGAs";
-import { AlertTriangle } from "lucide-react";
 
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
+import IncidentReportingLogo from "../assets/IncidentReporting.png"; // ✅ logo
+
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
 const UPLOAD_PRESET = "your_upload_preset";
 
-// Leaflet icon fix
+// Fix Leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -43,7 +44,6 @@ const INCIDENT_TITLES = [
   "Human trafficking",
   "Stalking",
   "Extortion",
-  "Public Order & Miscellaneous Offenses",
   "Drug trafficking",
   "Illegal possession of firearms",
   "Smuggling",
@@ -70,7 +70,7 @@ function IncidentReports({ user }) {
   const [watchId, setWatchId] = useState(null);
   const [useCustomTitle, setUseCustomTitle] = useState(false);
 
-  // Live timestamp every second
+  // Live timestamp
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
@@ -90,7 +90,7 @@ function IncidentReports({ user }) {
     return () => clearInterval(interval);
   }, []);
 
-  // GPS tracking
+  // Start GPS tracking
   const startTracking = () => {
     if (!navigator.geolocation) {
       alert("Geolocation not supported");
@@ -130,6 +130,7 @@ function IncidentReports({ user }) {
     setWatchId(id);
   };
 
+  // Stop GPS tracking
   const stopTracking = () => {
     if (watchId !== null) {
       navigator.geolocation.clearWatch(watchId);
@@ -137,6 +138,7 @@ function IncidentReports({ user }) {
     }
   };
 
+  // Save incident
   const addIncident = () => {
     const finalIncident = { id: Date.now().toString(), ...incident };
     db.incidents.push(finalIncident);
@@ -158,6 +160,7 @@ function IncidentReports({ user }) {
     stopTracking();
   };
 
+  // Handle file upload to Cloudinary
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -180,12 +183,19 @@ function IncidentReports({ user }) {
 
   return (
     <div style={{ marginBottom: "20px", padding: "15px", background: "#fff", borderRadius: "8px", boxShadow: "0 2px 6px rgba(0,0,0,0.1)" }}>
-      {/* Header */}
-      <div style={{ textAlign: "center", marginBottom: "15px" }}>
-        <AlertTriangle size={50} color="#ae0a17ff" style={{ marginBottom: "10px" }} />
-        <h2 style={{ fontSize: "22px", margin: 0, color: "#333" }}>Incident Reports</h2>
-        <p style={{ fontWeight: "bold", color: "#555" }}>🕒 Live Time: {incident.timestamp}</p>
+      {/* Header with Bigger Logo */}
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: "15px" }}>
+        <img
+          src={IncidentReportingLogo}
+          alt="Incident Reporting"
+          style={{ height: "70px", objectFit: "contain" }} // ✅ Bigger logo
+        />
       </div>
+
+      {/* Live Time */}
+      <p style={{ textAlign: "center", fontWeight: "bold", color: "#555", marginBottom: "15px" }}>
+        🕒 Live Time: {incident.timestamp}
+      </p>
 
       {/* Incident Title */}
       <div style={{ marginBottom: "10px" }}>
@@ -223,7 +233,7 @@ function IncidentReports({ user }) {
       <input type="date" value={incident.date} onChange={(e) => setIncident({ ...incident, date: e.target.value })} style={{ width: "100%", marginBottom: "10px", padding: "8px" }} />
       <textarea placeholder="Short Description" value={incident.description} onChange={(e) => setIncident({ ...incident, description: e.target.value })} style={{ width: "100%", marginBottom: "10px", padding: "8px" }} />
 
-      {/* Image upload */}
+      {/* Image Upload */}
       <input type="file" onChange={handleFileChange} style={{ width: "100%", marginBottom: "10px" }} />
       {loading && <p>Uploading image...</p>}
       {incident.imageUrl && <img src={incident.imageUrl} alt="Uploaded" style={{ width: "100px", marginBottom: "10px", borderRadius: "4px" }} />}
