@@ -39,7 +39,7 @@ function App() {
             <img
               src={logo}
               alt="SafeConnect Logo"
-              style={{ height: "70px", borderRadius: "6px", cursor: "pointer" }}
+              style={{ height: "150px", borderRadius: "6px", cursor: "pointer" }}
             />
           </a>
         </div>
