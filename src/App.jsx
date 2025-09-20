@@ -6,7 +6,7 @@ import IncidentMap from "./components/IncidentMap";
 import Ads from "./components/Ads";
 import CommunityConnect from "./components/CommunityConnect";
 import NewsUpdate from "./components/NewsUpdate";
-import LocalEventsAndBusiness from "./components/LocalEventsAndBusiness";
+import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
 
 import logo from "./assets/Connect4.jpg";
 import "./App.css";
@@ -65,7 +65,11 @@ function App() {
       case "incidents":
         return <IncidentReports user={user} />;
       case "map":
-        return <IncidentMap />; // ✅ Map preserved exactly
+        return (
+          <div style={{ width: "100%", height: "80vh" }}> {/* Ensure map is visible */}
+            <IncidentMap />
+          </div>
+        );
       case "ads":
         return <Ads user={user} />;
       case "community":
