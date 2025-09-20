@@ -1,78 +1,75 @@
 import React from "react";
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from "react-router-dom";
+
+// Pages
+import Home from "./components/Home";
 import IncidentReports from "./components/IncidentReports";
-import IncidentMap from "./components/IncidentMap";
 import Ads from "./components/Ads";
 import CommunityConnect from "./components/CommunityConnect";
-import NewsUpdate from "./components/NewsUpdates";
 import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
-import logo from "./assets/Connect4.jpg"; // Import your logo
+import NewsUpdate from "./components/NewsUpdate";
+import IncidentMap from "./components/IncidentMap";
+
+// Logos
+import logo from "./assets/Connect4.jpg";
+import IncidentLogo from "./assets/IncidentReporting.png";
+import AdsLogo from "./assets/Ads.png";
+import CommunityLogo from "./assets/Community.png";
+import EventLogo from "./assets/Event.png";
+import NewsLogo from "./assets/NewsUpdate.png";
+
 import "./App.css";
 
 const user = { id: "1", area: "NY", interests: ["security", "home services"] };
 
+// Bottom Navigation Component
+function BottomNav() {
+  const location = useLocation();
+  const navItems = [
+    { path: "/", icon: logo, label: "Home" },
+    { path: "/incidents", icon: IncidentLogo, label: "Incidents" },
+    { path: "/ads", icon: AdsLogo, label: "Ads" },
+    { path: "/community", icon: CommunityLogo, label: "Community" },
+    { path: "/events", icon: EventLogo, label: "Events" },
+    { path: "/news", icon: NewsLogo, label: "News" },
+    { path: "/map", icon: IncidentLogo, label: "Map" },
+  ];
+
+  return (
+    <nav className="bottom-nav">
+      {navItems.map((item) => (
+        <Link
+          key={item.path}
+          to={item.path}
+          className={`nav-item ${location.pathname === item.path ? "active" : ""}`}
+        >
+          <img src={item.icon} alt={item.label} className="nav-icon" />
+          <span className="nav-label">{item.label}</span>
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
 function App() {
   return (
-    <div>
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#311effff",
-          padding: "30px 20px",
-          color: "#fff",
-          borderRadius: 10,
-          marginBottom: 30,
-          boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "15px",
-          }}
-        >
-          <h1 style={{ margin: 0, fontSize: "32px", fontWeight: "bold" }}>
-            SafeConnect Naija
-          </h1>
-          <a href="/" style={{ display: "inline-block" }}>
-            <img
-              src={logo}
-              alt="SafeConnect Logo"
-              style={{ height: "150px", borderRadius: "6px", cursor: "pointer" }}
-            />
-          </a>
-        </div>
-        <p style={{ marginTop: 10, fontSize: 18, color: "#e0f0ff" }}>
-          Building safer, stronger communities across Nigeria
-        </p>
-      </header>
+    <Router>
+      <div className="app-container">
+        {/* Routes */}
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/incidents" element={<IncidentReports user={user} />} />
+          <Route path="/ads" element={<Ads user={user} />} />
+          <Route path="/community" element={<CommunityConnect user={user} />} />
+          <Route path="/events" element={<LocalEventsAndBusiness user={user} />} />
+          <Route path="/news" element={<NewsUpdate user={user} />} />
+          <Route path="/map" element={<IncidentMap />} />
+        </Routes>
 
-      {/* Main Content */}
-      <div className="main-content" style={{ display: "flex", gap: 20 }}>
-        <div style={{ flex: 2 }}>
-          <IncidentReports user={user} />
-          <LocalEventsAndBusiness user={user} />
-          <IncidentMap />
-        </div>
-
-        <div style={{ flex: 1 }}>
-          <Ads user={user} />
-          <CommunityConnect user={user} />
-          <NewsUpdate user={user} />
-        </div>
+        {/* Bottom Navigation */}
+        <BottomNav />
       </div>
-
-      {/* Footer */}
-      <div className="footer">
-        <h2>Ready to make your neighborhood safer?</h2>
-        <p>
-          Join thousands of Nigerians already using SafeConnect to build
-          stronger, safer communities.
-        </p>
-        <button>Join Your Community</button>
-      </div>
-    </div>
+    </Router>
   );
 }
 
