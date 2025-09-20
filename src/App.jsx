@@ -23,7 +23,7 @@ function App() {
       <img
         src={logo}
         alt="SafeConnect Logo"
-        style={{ height: 180, borderRadius: 12, marginBottom: 20 }}
+        style={{ height: 250, borderRadius: 22, marginBottom: 30 }}
       />
       <p style={{ fontSize: "1.1rem", marginBottom: 20 }}>
         Building safer, stronger communities across Nigeria
