@@ -6,7 +6,7 @@ import Home from "./components/Home";
 import IncidentReports from "./components/IncidentReports";
 import Ads from "./components/Ads";
 import CommunityConnect from "./components/CommunityConnect";
-import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
+import LocalEventsBusiness from "./components/LocalEventsBusiness"; // fixed import
 import NewsUpdate from "./components/NewsUpdate";
 import IncidentMap from "./components/IncidentMap";
 
@@ -60,7 +60,7 @@ function App() {
           <Route path="/incidents" element={<IncidentReports user={user} />} />
           <Route path="/ads" element={<Ads user={user} />} />
           <Route path="/community" element={<CommunityConnect user={user} />} />
-          <Route path="/events" element={<LocalEventsAndBusiness user={user} />} />
+          <Route path="/events" element={<LocalEventsBusiness user={user} />} />
           <Route path="/news" element={<NewsUpdate user={user} />} />
           <Route path="/map" element={<IncidentMap />} />
         </Routes>
