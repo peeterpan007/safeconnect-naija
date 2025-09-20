@@ -19,15 +19,11 @@ function App() {
 
   const renderHomePage = () => (
     <div style={{ padding: 20, textAlign: "center" }}>
-      {/* Only home page logo */}
       <img src={logo} alt="SafeConnect Logo" style={{ height: 120, borderRadius: 12, marginBottom: 15 }} />
-      <h1 style={{ fontSize: "1.5rem", marginBottom: 10 }}>SafeConnect Naija</h1>
-      <p style={{ fontSize: "1rem", marginBottom: 20 }}>
-        Building safer, stronger communities across Nigeria
-      </p>
+      <p>Building safer, stronger communities across Nigeria</p>
 
       {/* Auth Tabs */}
-      <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 20 }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 10, marginTop: 20 }}>
         <button
           onClick={() => setAuthTab("login")}
           className={authTab === "login" ? "active-tab" : ""}
@@ -43,15 +39,15 @@ function App() {
       </div>
 
       {/* Forms */}
-      <div>
+      <div style={{ marginTop: 20 }}>
         {authTab === "login" ? (
-          <form className="auth-form" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <form className="auth-form">
             <input type="email" placeholder="Email" required />
             <input type="password" placeholder="Password" required />
             <button type="submit">Login</button>
           </form>
         ) : (
-          <form className="auth-form" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <form className="auth-form">
             <input type="email" placeholder="Email" required />
             <input type="password" placeholder="Password" required />
             <button type="submit">Sign Up</button>
@@ -74,7 +70,11 @@ function App() {
       case "community":
         return <CommunityConnect user={user} />;
       case "events":
-        return <LocalEventsAndBusiness user={user} />;
+        return (
+          <div style={{ display: "flex", flexDirection: "column", gap: 15, padding: "10px 0" }}>
+            <LocalEventsAndBusiness user={user} />
+          </div>
+        );
       case "news":
         return <NewsUpdate user={user} />;
       default:
@@ -84,14 +84,29 @@ function App() {
 
   return (
     <div>
-      {/* Removed top logo header completely */}
+      {/* Header */}
+      <header
+        style={{
+          backgroundColor: "#311eff",
+          padding: "20px",
+          color: "#fff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "15px",
+          flexWrap: "wrap",
+        }}
+      >
+        <img src={logo} alt="SafeConnect Logo" style={{ height: "100px", borderRadius: "8px" }} />
+        <h1 style={{ margin: 0 }}>SafeConnect Naija</h1>
+      </header>
 
       {/* Main Content */}
       <div className="main-content" style={{ padding: "0 10px 80px" }}>
         {renderTabContent()}
       </div>
 
-      {/* Bottom Navigation (unchanged) */}
+      {/* Bottom Navigation */}
       <nav
         style={{
           position: "fixed",
