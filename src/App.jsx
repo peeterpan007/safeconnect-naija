@@ -6,7 +6,7 @@ import IncidentMap from "./components/IncidentMap";
 import Ads from "./components/Ads";
 import CommunityConnect from "./components/CommunityConnect";
 import NewsUpdate from "./components/NewsUpdate";
-import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
+import LocalEventsAndBusiness from "./components/LocalEventsAndBusiness";
 
 import logo from "./assets/Connect4.jpg";
 import "./App.css";
@@ -15,15 +15,17 @@ const user = { id: "1", area: "NY", interests: ["security", "home services"] };
 
 function App() {
   const [activeTab, setActiveTab] = useState("home");
-  const [authTab, setAuthTab] = useState("login"); // "login" or "signup"
+  const [authTab, setAuthTab] = useState("login");
 
   const renderHomePage = () => (
     <div style={{ padding: 20, textAlign: "center" }}>
       <img src={logo} alt="SafeConnect Logo" style={{ height: 120, borderRadius: 12, marginBottom: 15 }} />
-      <p>Building safer, stronger communities across Nigeria</p>
+      <h1 style={{ fontSize: "1.5rem", marginBottom: 10 }}>SafeConnect Naija</h1>
+      <p style={{ fontSize: "1rem", marginBottom: 20 }}>
+        Building safer, stronger communities across Nigeria
+      </p>
 
-      {/* Auth Tabs */}
-      <div style={{ display: "flex", justifyContent: "center", gap: 10, marginTop: 20 }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 20 }}>
         <button
           onClick={() => setAuthTab("login")}
           className={authTab === "login" ? "active-tab" : ""}
@@ -38,16 +40,15 @@ function App() {
         </button>
       </div>
 
-      {/* Forms */}
-      <div style={{ marginTop: 20 }}>
+      <div>
         {authTab === "login" ? (
-          <form className="auth-form">
+          <form className="auth-form" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <input type="email" placeholder="Email" required />
             <input type="password" placeholder="Password" required />
             <button type="submit">Login</button>
           </form>
         ) : (
-          <form className="auth-form">
+          <form className="auth-form" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <input type="email" placeholder="Email" required />
             <input type="password" placeholder="Password" required />
             <button type="submit">Sign Up</button>
@@ -64,17 +65,13 @@ function App() {
       case "incidents":
         return <IncidentReports user={user} />;
       case "map":
-        return <IncidentMap />;
+        return <IncidentMap />; // ✅ Map preserved exactly
       case "ads":
         return <Ads user={user} />;
       case "community":
         return <CommunityConnect user={user} />;
       case "events":
-        return (
-          <div style={{ display: "flex", flexDirection: "column", gap: 15, padding: "10px 0" }}>
-            <LocalEventsAndBusiness user={user} />
-          </div>
-        );
+        return <LocalEventsAndBusiness user={user} />;
       case "news":
         return <NewsUpdate user={user} />;
       default:
@@ -84,29 +81,12 @@ function App() {
 
   return (
     <div>
-      {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#311eff",
-          padding: "20px",
-          color: "#fff",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "15px",
-          flexWrap: "wrap",
-        }}
-      >
-        <img src={logo} alt="SafeConnect Logo" style={{ height: "100px", borderRadius: "8px" }} />
-        <h1 style={{ margin: 0 }}>SafeConnect Naija</h1>
-      </header>
-
       {/* Main Content */}
       <div className="main-content" style={{ padding: "0 10px 80px" }}>
         {renderTabContent()}
       </div>
 
-      {/* Bottom Navigation */}
+      {/* Bottom Navigation (unchanged) */}
       <nav
         style={{
           position: "fixed",
