@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { FaHome, FaMapMarkerAlt, FaClipboardList, FaBullhorn, FaUsers, FaCalendarAlt, FaNewspaper } from "react-icons/fa";
+import {
+  FaHome,
+  FaMapMarkerAlt,
+  FaClipboardList,
+  FaBullhorn,
+  FaUsers,
+  FaCalendarAlt,
+  FaNewspaper,
+} from "react-icons/fa";
 
 import IncidentReports from "./components/IncidentReports";
 import IncidentMap from "./components/IncidentMap";
@@ -10,6 +18,9 @@ import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
 
 import logo from "./assets/Connect4.jpg";
 import "./App.css";
+
+import Login from "./components/Login";   // ✅ use your components
+import SignUp from "./components/SignUp";
 
 const user = { id: "1", area: "NY", interests: ["security", "home services"] };
 
@@ -30,7 +41,14 @@ function App() {
       </p>
 
       {/* Auth Tabs */}
-      <div style={{ display: "flex", justifyContent: "center", gap: 15, marginBottom: 25 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: 15,
+          marginBottom: 25,
+        }}
+      >
         <button
           onClick={() => setAuthTab("login")}
           className={authTab === "login" ? "active-tab" : ""}
@@ -45,21 +63,9 @@ function App() {
         </button>
       </div>
 
-      {/* Forms */}
+      {/* Render login or signup form from components */}
       <div>
-        {authTab === "login" ? (
-          <form className="auth-form" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <input type="email" placeholder="Email" required />
-            <input type="password" placeholder="Password" required />
-            <button type="submit">Login</button>
-          </form>
-        ) : (
-          <form className="auth-form" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <input type="email" placeholder="Email" required />
-            <input type="password" placeholder="Password" required />
-            <button type="submit">Sign Up</button>
-          </form>
-        )}
+        {authTab === "login" ? <Login /> : <SignUp />}
       </div>
     </div>
   );
@@ -82,7 +88,14 @@ function App() {
         return <CommunityConnect user={user} />;
       case "events":
         return (
-          <div style={{ display: "flex", flexDirection: "column", gap: 15, padding: "10px 0" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 15,
+              padding: "10px 0",
+            }}
+          >
             <LocalEventsAndBusiness user={user} />
           </div>
         );
@@ -129,25 +142,46 @@ function App() {
           zIndex: 100,
         }}
       >
-        <button onClick={() => setActiveTab("home")} style={{ background: "none", border: "none", color: "#fff" }}>
+        <button
+          onClick={() => setActiveTab("home")}
+          style={{ background: "none", border: "none", color: "#fff" }}
+        >
           <FaHome size={24} />
         </button>
-        <button onClick={() => setActiveTab("incidents")} style={{ background: "none", border: "none", color: "#fff" }}>
+        <button
+          onClick={() => setActiveTab("incidents")}
+          style={{ background: "none", border: "none", color: "#fff" }}
+        >
           <FaClipboardList size={24} />
         </button>
-        <button onClick={() => setActiveTab("map")} style={{ background: "none", border: "none", color: "#fff" }}>
+        <button
+          onClick={() => setActiveTab("map")}
+          style={{ background: "none", border: "none", color: "#fff" }}
+        >
           <FaMapMarkerAlt size={24} />
         </button>
-        <button onClick={() => setActiveTab("ads")} style={{ background: "none", border: "none", color: "#fff" }}>
+        <button
+          onClick={() => setActiveTab("ads")}
+          style={{ background: "none", border: "none", color: "#fff" }}
+        >
           <FaBullhorn size={24} />
         </button>
-        <button onClick={() => setActiveTab("community")} style={{ background: "none", border: "none", color: "#fff" }}>
+        <button
+          onClick={() => setActiveTab("community")}
+          style={{ background: "none", border: "none", color: "#fff" }}
+        >
           <FaUsers size={24} />
         </button>
-        <button onClick={() => setActiveTab("events")} style={{ background: "none", border: "none", color: "#fff" }}>
+        <button
+          onClick={() => setActiveTab("events")}
+          style={{ background: "none", border: "none", color: "#fff" }}
+        >
           <FaCalendarAlt size={24} />
         </button>
-        <button onClick={() => setActiveTab("news")} style={{ background: "none", border: "none", color: "#fff" }}>
+        <button
+          onClick={() => setActiveTab("news")}
+          style={{ background: "none", border: "none", color: "#fff" }}
+        >
           <FaNewspaper size={24} />
         </button>
       </nav>

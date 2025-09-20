@@ -16,3 +16,6 @@ input[type="date"]::placeholder {
   color: #fff;             /* White placeholder */
   opacity: 1;
 }
+.page-content {
+  padding-bottom: 100px; /* pushes content above bottom nav */
+}
