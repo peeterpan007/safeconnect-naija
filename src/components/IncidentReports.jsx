@@ -188,7 +188,7 @@ function IncidentReports({ user }) {
         <img
           src={IncidentReportingLogo}
           alt="Incident Reporting"
-          style={{ height: "170px", objectFit: "contain" }} // ✅ Bigger logo
+          style={{ height: "170px", objectFit: "contain" }}
         />
       </div>
 
@@ -229,9 +229,45 @@ function IncidentReports({ user }) {
         )}
       </div>
 
+      {/* Date & Description with placeholder inside date input */}
       {/* Date & Description */}
-      <input type="date" value={incident.date} onChange={(e) => setIncident({ ...incident, date: e.target.value })} style={{ width: "100%", marginBottom: "10px", padding: "8px" }} />
-      <textarea placeholder="Short Description" value={incident.description} onChange={(e) => setIncident({ ...incident, description: e.target.value })} style={{ width: "100%", marginBottom: "10px", padding: "8px" }} />
+<div style={{ position: "relative", marginBottom: "10px" }}>
+  <input
+    type="date"
+    value={incident.date}
+    onChange={(e) => setIncident({ ...incident, date: e.target.value })}
+    style={{
+      width: "95%",
+      padding: "8px",
+      borderRadius: "6px",
+      border: "1px solid #ccc",
+      color: incident.date ? "#000" : "#555",
+    }}
+  />
+  {!incident.date && (
+    <span
+      style={{
+        position: "absolute",
+        left: "12px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        color: "#555",
+        pointerEvents: "none",
+        fontSize: "0.9rem",
+      }}
+    >
+      Select Date
+    </span>
+  )}
+</div>
+
+<textarea
+  placeholder="Short Description"
+  value={incident.description}
+  onChange={(e) => setIncident({ ...incident, description: e.target.value })}
+  style={{ width: "95%", marginBottom: "10px", padding: "8px" }}
+/>
+
 
       {/* Image Upload */}
       <input type="file" onChange={handleFileChange} style={{ width: "100%", marginBottom: "10px" }} />
