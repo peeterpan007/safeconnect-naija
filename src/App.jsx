@@ -1,78 +1,146 @@
 import React, { useState } from "react";
-import Home from "./components/Home";
+import { FaHome, FaMapMarkerAlt, FaClipboardList, FaBullhorn, FaUsers, FaCalendarAlt, FaNewspaper } from "react-icons/fa";
+
 import IncidentReports from "./components/IncidentReports";
+import IncidentMap from "./components/IncidentMap";
 import Ads from "./components/Ads";
 import CommunityConnect from "./components/CommunityConnect";
-import LocalEventsBusiness from "./components/LocalEventsBusiness";
 import NewsUpdate from "./components/NewsUpdate";
-import IncidentMap from "./components/IncidentMap";
+import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
 
-// Logos
 import logo from "./assets/Connect4.jpg";
-import IncidentLogo from "./assets/IncidentReporting.png";
-import AdsLogo from "./assets/Ads.png";
-import CommunityLogo from "./assets/Community.png";
-import EventLogo from "./assets/Event.png";
-import NewsLogo from "./assets/NewsUpdate.png";
-import MapLogo from "./assets/IncidentReporting.png"; // Reuse Incident Logo for map
-
 import "./App.css";
 
 const user = { id: "1", area: "NY", interests: ["security", "home services"] };
 
 function App() {
   const [activeTab, setActiveTab] = useState("home");
+  const [authTab, setAuthTab] = useState("login"); // "login" or "signup"
 
-  const renderTab = () => {
+  const renderHomePage = () => (
+    <div style={{ padding: 20, textAlign: "center" }}>
+      <img src={logo} alt="SafeConnect Logo" style={{ height: 120, borderRadius: 12, marginBottom: 15 }} />
+      <p>Building safer, stronger communities across Nigeria</p>
+
+      {/* Auth Tabs */}
+      <div style={{ display: "flex", justifyContent: "center", gap: 10, marginTop: 20 }}>
+        <button
+          onClick={() => setAuthTab("login")}
+          className={authTab === "login" ? "active-tab" : ""}
+        >
+          Login
+        </button>
+        <button
+          onClick={() => setAuthTab("signup")}
+          className={authTab === "signup" ? "active-tab" : ""}
+        >
+          Sign Up
+        </button>
+      </div>
+
+      {/* Forms */}
+      <div style={{ marginTop: 20 }}>
+        {authTab === "login" ? (
+          <form className="auth-form">
+            <input type="email" placeholder="Email" required />
+            <input type="password" placeholder="Password" required />
+            <button type="submit">Login</button>
+          </form>
+        ) : (
+          <form className="auth-form">
+            <input type="email" placeholder="Email" required />
+            <input type="password" placeholder="Password" required />
+            <button type="submit">Sign Up</button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderTabContent = () => {
     switch (activeTab) {
+      case "home":
+        return renderHomePage();
       case "incidents":
         return <IncidentReports user={user} />;
+      case "map":
+        return <IncidentMap />;
       case "ads":
         return <Ads user={user} />;
       case "community":
         return <CommunityConnect user={user} />;
       case "events":
-        return <LocalEventsBusiness user={user} />;
-      case "news":
-        return <NewsUpdate user={user} />;
-      case "map":
         return (
-          <div style={{ height: "500px", width: "100%" }}>
-            <IncidentMap />
+          <div style={{ display: "flex", flexDirection: "column", gap: 15, padding: "10px 0" }}>
+            <LocalEventsAndBusiness user={user} />
           </div>
         );
+      case "news":
+        return <NewsUpdate user={user} />;
       default:
-        return <Home />;
+        return null;
     }
   };
 
-  const navItems = [
-    { key: "home", icon: logo, label: "Home" },
-    { key: "incidents", icon: IncidentLogo, label: "Incidents" },
-    { key: "ads", icon: AdsLogo, label: "Ads" },
-    { key: "community", icon: CommunityLogo, label: "Community" },
-    { key: "events", icon: EventLogo, label: "Events" },
-    { key: "news", icon: NewsLogo, label: "News" },
-    { key: "map", icon: MapLogo, label: "Map" },
-  ];
-
   return (
-    <div className="app-container">
+    <div>
+      {/* Header */}
+      <header
+        style={{
+          backgroundColor: "#311eff",
+          padding: "20px",
+          color: "#fff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "15px",
+          flexWrap: "wrap",
+        }}
+      >
+        <img src={logo} alt="SafeConnect Logo" style={{ height: "100px", borderRadius: "8px" }} />
+        <h1 style={{ margin: 0 }}>SafeConnect Naija</h1>
+      </header>
+
       {/* Main Content */}
-      <div style={{ paddingBottom: "80px" }}>{renderTab()}</div>
+      <div className="main-content" style={{ padding: "0 10px 80px" }}>
+        {renderTabContent()}
+      </div>
 
       {/* Bottom Navigation */}
-      <nav className="bottom-nav">
-        {navItems.map((item) => (
-          <button
-            key={item.key}
-            onClick={() => setActiveTab(item.key)}
-            className={`nav-item ${activeTab === item.key ? "active" : ""}`}
-          >
-            <img src={item.icon} alt={item.label} className="nav-icon" />
-            <span className="nav-label">{item.label}</span>
-          </button>
-        ))}
+      <nav
+        style={{
+          position: "fixed",
+          bottom: 0,
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-around",
+          backgroundColor: "#311eff",
+          color: "#fff",
+          padding: "10px 0",
+          zIndex: 100,
+        }}
+      >
+        <button onClick={() => setActiveTab("home")} style={{ background: "none", border: "none", color: "#fff" }}>
+          <FaHome size={24} />
+        </button>
+        <button onClick={() => setActiveTab("incidents")} style={{ background: "none", border: "none", color: "#fff" }}>
+          <FaClipboardList size={24} />
+        </button>
+        <button onClick={() => setActiveTab("map")} style={{ background: "none", border: "none", color: "#fff" }}>
+          <FaMapMarkerAlt size={24} />
+        </button>
+        <button onClick={() => setActiveTab("ads")} style={{ background: "none", border: "none", color: "#fff" }}>
+          <FaBullhorn size={24} />
+        </button>
+        <button onClick={() => setActiveTab("community")} style={{ background: "none", border: "none", color: "#fff" }}>
+          <FaUsers size={24} />
+        </button>
+        <button onClick={() => setActiveTab("events")} style={{ background: "none", border: "none", color: "#fff" }}>
+          <FaCalendarAlt size={24} />
+        </button>
+        <button onClick={() => setActiveTab("news")} style={{ background: "none", border: "none", color: "#fff" }}>
+          <FaNewspaper size={24} />
+        </button>
       </nav>
     </div>
   );

@@ -1,76 +1,81 @@
 import React, { useState } from "react";
-import IncidentReports from "./IncidentReports";
-import Ads from "./Ads";
-import CommunityConnect from "./CommunityConnect";
-import LocalEventsBusiness from "./LocalEventsBusiness";
-import NewsUpdate from "./NewsUpdate";
-import IncidentMap from "./IncidentMap";
-
 import logo from "../assets/Connect4.jpg";
 
-export default function Home() {
-  const [activeTab, setActiveTab] = useState("home");
+export default function Home({ setUser }) {
+  const [isLogin, setIsLogin] = useState(true); // Toggle between login and signup
+  const [form, setForm] = useState({ username: "", password: "", confirmPassword: "" });
 
-  const renderTab = () => {
-    switch (activeTab) {
-      case "incidents":
-        return <IncidentReports user={{ id: "1" }} />;
-      case "ads":
-        return <Ads user={{ id: "1" }} />;
-      case "community":
-        return <CommunityConnect user={{ id: "1" }} />;
-      case "events":
-        return <LocalEventsBusiness user={{ id: "1" }} />;
-      case "news":
-        return <NewsUpdate user={{ id: "1" }} />;
-      case "map":
-        return (
-          <div style={{ height: "500px", width: "100%" }}>
-            <IncidentMap />
-          </div>
-        );
-      default:
-        return (
-          <div style={{ textAlign: "center" }}>
-            <img src={logo} alt="SafeConnectNaija" style={{ height: "120px", marginBottom: "10px" }} />
-            <h1>Welcome to SafeConnect Naija</h1>
-            <p>Building safer, stronger communities across Nigeria</p>
-          </div>
-        );
-    }
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleLogin = () => {
+    if (!form.username || !form.password) return alert("Please enter username and password");
+    setUser({ id: Date.now().toString(), username: form.username });
+    alert(`Logged in as ${form.username}`);
+  };
+
+  const handleSignUp = () => {
+    if (!form.username || !form.password || !form.confirmPassword) return alert("All fields required");
+    if (form.password !== form.confirmPassword) return alert("Passwords do not match");
+    setUser({ id: Date.now().toString(), username: form.username });
+    alert(`Account created for ${form.username}`);
   };
 
   return (
-    <div>
-      {/* Tabs */}
-      <div style={{ display: "flex", overflowX: "auto", padding: "10px", gap: "10px", backgroundColor: "#311effff" }}>
-        {["home", "incidents", "ads", "community", "events", "news", "map"].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={{
-              padding: "10px",
-              backgroundColor: activeTab === tab ? "#10b981" : "#fff",
-              color: activeTab === tab ? "#fff" : "#000",
-              border: "none",
-              borderRadius: "5px",
-              minWidth: "80px",
-              cursor: "pointer",
-            }}
-          >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
+    <div style={{ padding: 20 }}>
+      {/* Logo and Header */}
+      <div style={{ textAlign: "center", marginBottom: 20 }}>
+        <img src={logo} alt="SafeConnectNaija Logo" style={{ width: "150px", borderRadius: "6px" }} />
+        <h1 style={{ margin: "10px 0", fontSize: "24px", color: "#311eff" }}>SafeConnect Naija</h1>
+        <p style={{ color: "#555" }}>Building safer, stronger communities across Nigeria</p>
       </div>
 
-      {/* Tab Content */}
-      <div style={{ padding: "10px" }}>{renderTab()}</div>
+      {/* Toggle Login / Sign Up */}
+      <div style={{ display: "flex", justifyContent: "center", marginBottom: 20, gap: 10 }}>
+        <button onClick={() => setIsLogin(true)} style={{ padding: 10, backgroundColor: isLogin ? "#10b981" : "#ccc", color: "#fff", borderRadius: 6 }}>Login</button>
+        <button onClick={() => setIsLogin(false)} style={{ padding: 10, backgroundColor: !isLogin ? "#10b981" : "#ccc", color: "#fff", borderRadius: 6 }}>Sign Up</button>
+      </div>
 
-      {/* Footer */}
-      <div style={{ textAlign: "center", backgroundColor: "#0821c6", color: "#fff", padding: "40px 20px", marginTop: "20px", borderRadius: "10px" }}>
+      {/* Form */}
+      <div style={{ maxWidth: 300, margin: "0 auto", display: "flex", flexDirection: "column", gap: 10 }}>
+        <input
+          type="text"
+          name="username"
+          placeholder="Username"
+          value={form.username}
+          onChange={handleChange}
+          style={{ padding: 8, borderRadius: 4, border: "1px solid #ccc" }}
+        />
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={form.password}
+          onChange={handleChange}
+          style={{ padding: 8, borderRadius: 4, border: "1px solid #ccc" }}
+        />
+        {!isLogin && (
+          <input
+            type="password"
+            name="confirmPassword"
+            placeholder="Confirm Password"
+            value={form.confirmPassword}
+            onChange={handleChange}
+            style={{ padding: 8, borderRadius: 4, border: "1px solid #ccc" }}
+          />
+        )}
+        <button
+          onClick={isLogin ? handleLogin : handleSignUp}
+          style={{ padding: 10, backgroundColor: "#311eff", color: "#fff", borderRadius: 6, fontWeight: "bold" }}
+        >
+          {isLogin ? "Login" : "Sign Up"}
+        </button>
+      </div>
+
+      {/* Footer / CTA */}
+      <div style={{ backgroundColor: "#0821c6", color: "#fff", padding: 20, borderRadius: 10, textAlign: "center", marginTop: 30 }}>
         <h2>Ready to make your neighborhood safer?</h2>
         <p>Join thousands of Nigerians already using SafeConnect to build stronger, safer communities.</p>
-        <button style={{ backgroundColor: "#10b981", color: "#fff", border: "none", padding: "12px 25px", borderRadius: "6px", fontWeight: "bold", cursor: "pointer" }}>
+        <button style={{ backgroundColor: "#10b981", color: "#fff", border: "none", padding: "12px 25px", borderRadius: 6, fontWeight: "bold", cursor: "pointer" }}>
           Join Your Community
         </button>
       </div>
