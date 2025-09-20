@@ -1,12 +1,12 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from "react-router-dom";
 
-// Pages
+// Pages / Components
 import Home from "./components/Home";
 import IncidentReports from "./components/IncidentReports";
 import Ads from "./components/Ads";
 import CommunityConnect from "./components/CommunityConnect";
-import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
+import LocalEventsAndBusiness from "./components/LocalEventsAndBusiness";
 import NewsUpdate from "./components/NewsUpdate";
 import IncidentMap from "./components/IncidentMap";
 
@@ -22,7 +22,7 @@ import "./App.css";
 
 const user = { id: "1", area: "NY", interests: ["security", "home services"] };
 
-// Bottom Navigation Component
+// Bottom Navigation
 function BottomNav() {
   const location = useLocation();
   const navItems = [
@@ -55,7 +55,6 @@ function App() {
   return (
     <Router>
       <div className="app-container">
-        {/* Routes */}
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/incidents" element={<IncidentReports user={user} />} />
@@ -66,7 +65,6 @@ function App() {
           <Route path="/map" element={<IncidentMap />} />
         </Routes>
 
-        {/* Bottom Navigation */}
         <BottomNav />
       </div>
     </Router>
