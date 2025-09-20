@@ -15,17 +15,22 @@ const user = { id: "1", area: "NY", interests: ["security", "home services"] };
 
 function App() {
   const [activeTab, setActiveTab] = useState("home");
-  const [authTab, setAuthTab] = useState("login");
+  const [authTab, setAuthTab] = useState("login"); // "login" or "signup"
 
   const renderHomePage = () => (
     <div style={{ padding: 20, textAlign: "center" }}>
-      <img src={logo} alt="SafeConnect Logo" style={{ height: 120, borderRadius: 12, marginBottom: 15 }} />
-      <h1 style={{ fontSize: "1.5rem", marginBottom: 10 }}>SafeConnect Naija</h1>
-      <p style={{ fontSize: "1rem", marginBottom: 20 }}>
+      {/* Enlarged Home Logo */}
+      <img
+        src={logo}
+        alt="SafeConnect Logo"
+        style={{ height: 180, borderRadius: 12, marginBottom: 20 }}
+      />
+      <p style={{ fontSize: "1.1rem", marginBottom: 20 }}>
         Building safer, stronger communities across Nigeria
       </p>
 
-      <div style={{ display: "flex", justifyContent: "center", gap: 10, marginBottom: 20 }}>
+      {/* Auth Tabs */}
+      <div style={{ display: "flex", justifyContent: "center", gap: 15, marginBottom: 25 }}>
         <button
           onClick={() => setAuthTab("login")}
           className={authTab === "login" ? "active-tab" : ""}
@@ -40,15 +45,16 @@ function App() {
         </button>
       </div>
 
+      {/* Forms */}
       <div>
         {authTab === "login" ? (
-          <form className="auth-form" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <form className="auth-form" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <input type="email" placeholder="Email" required />
             <input type="password" placeholder="Password" required />
             <button type="submit">Login</button>
           </form>
         ) : (
-          <form className="auth-form" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <form className="auth-form" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <input type="email" placeholder="Email" required />
             <input type="password" placeholder="Password" required />
             <button type="submit">Sign Up</button>
@@ -66,7 +72,7 @@ function App() {
         return <IncidentReports user={user} />;
       case "map":
         return (
-          <div style={{ width: "100%", height: "80vh" }}> {/* Ensure map is visible */}
+          <div style={{ height: "calc(100vh - 80px - 60px)" }}>
             <IncidentMap />
           </div>
         );
@@ -75,7 +81,11 @@ function App() {
       case "community":
         return <CommunityConnect user={user} />;
       case "events":
-        return <LocalEventsAndBusiness user={user} />;
+        return (
+          <div style={{ display: "flex", flexDirection: "column", gap: 15, padding: "10px 0" }}>
+            <LocalEventsAndBusiness user={user} />
+          </div>
+        );
       case "news":
         return <NewsUpdate user={user} />;
       default:
@@ -85,12 +95,27 @@ function App() {
 
   return (
     <div>
+      {/* Header with only title */}
+      <header
+        style={{
+          backgroundColor: "#311eff",
+          padding: "20px",
+          color: "#fff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexWrap: "wrap",
+        }}
+      >
+        <h1 style={{ margin: 0 }}>SafeConnect Naija</h1>
+      </header>
+
       {/* Main Content */}
       <div className="main-content" style={{ padding: "0 10px 80px" }}>
         {renderTabContent()}
       </div>
 
-      {/* Bottom Navigation (unchanged) */}
+      {/* Bottom Navigation */}
       <nav
         style={{
           position: "fixed",
