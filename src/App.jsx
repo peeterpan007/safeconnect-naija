@@ -6,7 +6,7 @@ import Home from "./components/Home";
 import IncidentReports from "./components/IncidentReports";
 import Ads from "./components/Ads";
 import CommunityConnect from "./components/CommunityConnect";
-import LocalEventsAndBusiness from "./components/LocalEventsAndBusiness";
+import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
 import NewsUpdate from "./components/NewsUpdate";
 import IncidentMap from "./components/IncidentMap";
 
