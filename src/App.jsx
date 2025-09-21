@@ -26,7 +26,7 @@ const user = { id: "1", area: "NY", interests: ["security", "home services"] };
 
 function App() {
   const [activeTab, setActiveTab] = useState("home");
-  const [authTab, setAuthTab] = useState("login"); // "login" or "signup"
+  const [authTab, setAuthTab] = useState("login");
 
   const renderHomePage = () => (
     <div className="home-container">
@@ -51,8 +51,8 @@ function App() {
         </button>
       </div>
 
-      {/* Auth Form */}
-      <div className="auth-form-container">
+      {/* Auth Form with fade animation */}
+      <div className="auth-form-container" key={authTab}>
         {authTab === "login" ? <Login /> : <SignUp />}
       </div>
     </div>

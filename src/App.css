@@ -53,7 +53,7 @@ body {
   background-color: #f0f0f0;
   color: #333;
   font-weight: normal;
-  transition: 0.2s;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 .tab-button.active-tab {
@@ -62,10 +62,25 @@ body {
   font-weight: bold;
 }
 
+.tab-button:hover {
+  background-color: #5a44ff;
+  color: #fff;
+}
+
 /* Auth Form */
 .auth-form-container {
   max-width: 400px;
   margin: 0 auto;
+  opacity: 0;
+  transform: translateY(-10px);
+  animation: fadeIn 0.3s forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .auth-form {
@@ -79,6 +94,13 @@ body {
   border-radius: 5px;
   border: 1px solid #ccc;
   font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: #311eff;
+  box-shadow: 0 0 5px rgba(49, 30, 255, 0.5);
 }
 
 .auth-form button {
@@ -89,36 +111,8 @@ body {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-/* Map Container */
-.map-container {
-  height: calc(100vh - 80px - 60px);
-}
-
-/* Events Container */
-.events-container {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  padding: 10px 0;
-}
-
-/* Bottom Navigation */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-around;
-  background-color: #311eff;
-  color: #fff;
-  padding: 10px 0;
-  z-index: 100;
-}
-
-.nav-btn {
-  background: none;
-  border: none;
-  color: #fff;
-}
+.auth-form button:hover {
+  background-color: #5a44ff;
