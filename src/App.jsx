@@ -19,7 +19,7 @@ import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
 import logo from "./assets/Connect4.jpg";
 import "./App.css";
 
-import Login from "./components/Login";   // ✅ use your components
+import Login from "./components/Login";
 import SignUp from "./components/SignUp";
 
 const user = { id: "1", area: "NY", interests: ["security", "home services"] };
@@ -29,42 +29,30 @@ function App() {
   const [authTab, setAuthTab] = useState("login"); // "login" or "signup"
 
   const renderHomePage = () => (
-    <div style={{ padding: 20, textAlign: "center" }}>
-      {/* Enlarged Home Logo */}
-      <img
-        src={logo}
-        alt="SafeConnect Logo"
-        style={{ height: 250, borderRadius: 22, marginBottom: 30 }}
-      />
-      <p style={{ fontSize: "1.1rem", marginBottom: 20 }}>
+    <div className="home-container">
+      <img src={logo} alt="SafeConnect Logo" className="home-logo" />
+      <p className="home-description">
         Building safer, stronger communities across Nigeria
       </p>
 
       {/* Auth Tabs */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          gap: 15,
-          marginBottom: 25,
-        }}
-      >
+      <div className="auth-tabs">
         <button
           onClick={() => setAuthTab("login")}
-          className={authTab === "login" ? "active-tab" : ""}
+          className={authTab === "login" ? "tab-button active-tab" : "tab-button"}
         >
           Login
         </button>
         <button
           onClick={() => setAuthTab("signup")}
-          className={authTab === "signup" ? "active-tab" : ""}
+          className={authTab === "signup" ? "tab-button active-tab" : "tab-button"}
         >
           Sign Up
         </button>
       </div>
 
-      {/* Render login or signup form from components */}
-      <div>
+      {/* Auth Form */}
+      <div className="auth-form-container">
         {authTab === "login" ? <Login /> : <SignUp />}
       </div>
     </div>
@@ -78,7 +66,7 @@ function App() {
         return <IncidentReports user={user} />;
       case "map":
         return (
-          <div style={{ height: "calc(100vh - 80px - 60px)" }}>
+          <div className="map-container">
             <IncidentMap />
           </div>
         );
@@ -88,14 +76,7 @@ function App() {
         return <CommunityConnect user={user} />;
       case "events":
         return (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 15,
-              padding: "10px 0",
-            }}
-          >
+          <div className="events-container">
             <LocalEventsAndBusiness user={user} />
           </div>
         );
@@ -108,80 +89,35 @@ function App() {
 
   return (
     <div>
-      {/* Header with only title */}
-      <header
-        style={{
-          backgroundColor: "#311eff",
-          padding: "20px",
-          color: "#fff",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexWrap: "wrap",
-        }}
-      >
-        <h1 style={{ margin: 0 }}>SafeConnect Naija</h1>
+      {/* Header */}
+      <header className="app-header">
+        <h1>SafeConnect Naija</h1>
       </header>
 
       {/* Main Content */}
-      <div className="main-content" style={{ padding: "0 10px 80px" }}>
-        {renderTabContent()}
-      </div>
+      <div className="main-content">{renderTabContent()}</div>
 
       {/* Bottom Navigation */}
-      <nav
-        style={{
-          position: "fixed",
-          bottom: 0,
-          width: "100%",
-          display: "flex",
-          justifyContent: "space-around",
-          backgroundColor: "#311eff",
-          color: "#fff",
-          padding: "10px 0",
-          zIndex: 100,
-        }}
-      >
-        <button
-          onClick={() => setActiveTab("home")}
-          style={{ background: "none", border: "none", color: "#fff" }}
-        >
+      <nav className="bottom-nav">
+        <button onClick={() => setActiveTab("home")} className="nav-btn">
           <FaHome size={24} />
         </button>
-        <button
-          onClick={() => setActiveTab("incidents")}
-          style={{ background: "none", border: "none", color: "#fff" }}
-        >
+        <button onClick={() => setActiveTab("incidents")} className="nav-btn">
           <FaClipboardList size={24} />
         </button>
-        <button
-          onClick={() => setActiveTab("map")}
-          style={{ background: "none", border: "none", color: "#fff" }}
-        >
+        <button onClick={() => setActiveTab("map")} className="nav-btn">
           <FaMapMarkerAlt size={24} />
         </button>
-        <button
-          onClick={() => setActiveTab("ads")}
-          style={{ background: "none", border: "none", color: "#fff" }}
-        >
+        <button onClick={() => setActiveTab("ads")} className="nav-btn">
           <FaBullhorn size={24} />
         </button>
-        <button
-          onClick={() => setActiveTab("community")}
-          style={{ background: "none", border: "none", color: "#fff" }}
-        >
+        <button onClick={() => setActiveTab("community")} className="nav-btn">
           <FaUsers size={24} />
         </button>
-        <button
-          onClick={() => setActiveTab("events")}
-          style={{ background: "none", border: "none", color: "#fff" }}
-        >
+        <button onClick={() => setActiveTab("events")} className="nav-btn">
           <FaCalendarAlt size={24} />
         </button>
-        <button
-          onClick={() => setActiveTab("news")}
-          style={{ background: "none", border: "none", color: "#fff" }}
-        >
+        <button onClick={() => setActiveTab("news")} className="nav-btn">
           <FaNewspaper size={24} />
         </button>
       </nav>
