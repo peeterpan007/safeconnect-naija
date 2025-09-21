@@ -14,9 +14,11 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
   const [prevBrand, setPrevBrand] = useState("default");
   const [iconClass, setIconClass] = useState("fade-in");
 
+  // Format card number as "1234 5678 9012 3456"
   const formatCardNumber = (num) =>
     num.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
 
+  // Detect brand for icon
   const detectCardBrand = (num) => {
     if (!num) return "default";
     const firstDigit = num[0];
@@ -25,28 +27,50 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
     return "default";
   };
 
+  // Handle input changes
   const handleChange = (field, value) => {
-    if (field === "number") value = value.replace(/\D/g, "").slice(0, 16);
-
+    if (field === "number") {
+      value = value.replace(/\D/g, "").slice(0, 16);
+    }
     if (field === "expiry") {
       value = value.replace(/[^\d]/g, "").slice(0, 4);
-      if (value.length > 2) value = value.slice(0,2) + "/" + value.slice(2);
+      if (value.length > 2) value = value.slice(0, 2) + "/" + value.slice(2);
     }
-
-    if (field === "cvc") {
-      const rawCVC = value.replace(/\D/g, "").slice(0, 3);
-      setCard({ ...card, cvc: rawCVC });
-      return;
-    }
-
     setCard({ ...card, [field]: value });
+  };
+
+  // Handle CVC separately to fix masking
+  const handleCVCChange = (e) => {
+    const input = e.target.value;
+    let newCVC = card.cvc;
+
+    // Added a digit
+    if (input.length > card.cvc.length) {
+      newCVC = (card.cvc + input.slice(-1)).slice(0, 3);
+    }
+    // Deleted a digit
+    if (input.length < card.cvc.length) {
+      newCVC = newCVC.slice(0, input.length);
+    }
+
+    setCard({ ...card, cvc: newCVC });
+  };
+
+  // Validate form fields
+  const isFormValid = () => {
+    return (
+      card.number.replace(/\s/g, "").length === 16 &&
+      card.name.trim() !== "" &&
+      /^\d{2}\/\d{2}$/.test(card.expiry) &&
+      card.cvc.length === 3
+    );
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {};
-    if (card.number.length !== 16) newErrors.number = "Card number must be 16 digits";
-    if (!card.name) newErrors.name = "Cardholder name required";
+    if (card.number.replace(/\s/g, "").length !== 16) newErrors.number = "Card number must be 16 digits";
+    if (!card.name.trim()) newErrors.name = "Cardholder name required";
     if (!/^\d{2}\/\d{2}$/.test(card.expiry)) newErrors.expiry = "Expiry must be MM/YY";
     if (card.cvc.length !== 3) newErrors.cvc = "CVC must be 3 digits";
 
@@ -75,7 +99,7 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
     }
   }, [brand, prevBrand]);
 
-  const maskedCVC = card.cvc.padEnd(3, "•");
+  const maskedCVC = card.cvc.replace(/./g, "*").padEnd(3, "•");
   const maskedExpiry = card.expiry.padEnd(5, "•");
 
   return (
@@ -88,13 +112,7 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
             src={CARD_BRANDS[prevBrand]}
             alt={prevBrand}
             className={iconClass}
-            style={{
-              position: "absolute",
-              top: "10px",
-              right: "10px",
-              width: "50px",
-              height: "auto"
-            }}
+            style={{ position: "absolute", top: "10px", right: "10px", width: "50px" }}
           />
           <div className="card-number">{formatCardNumber(card.number).padEnd(19, "•")}</div>
           <div className="card-name">{card.name || "FULL NAME"}</div>
@@ -130,12 +148,14 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
           <input
             type="text"
             placeholder="CVC"
-            value={"*".repeat(card.cvc.length)}
-            onChange={(e) => handleChange("cvc", e.target.value)}
+            value={"*".repeat(card.cvc.length)} // proper masking
+            onChange={handleCVCChange}
           />
           {errors.cvc && <small className="error">{errors.cvc}</small>}
 
-          <button type="submit">Pay & Confirm</button>
+          <button type="submit" disabled={!isFormValid()} style={{ opacity: isFormValid() ? 1 : 0.5 }}>
+            Pay & Confirm
+          </button>
           <button type="button" onClick={handleCancel} className="cancel-btn">
             Cancel
           </button>

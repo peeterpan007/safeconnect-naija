@@ -11,30 +11,26 @@ function Ads({ user }) {
   const [loading, setLoading] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
 
-  const CHARGE_AMOUNT = 5000; // Sample charge for Ads
-
   function createAd() {
-    // Show payment modal first
+    if (!ad.title || !ad.file) {
+      alert("Please enter title and upload an image before payment");
+      return;
+    }
     setShowPayment(true);
   }
 
   const handlePaymentConfirm = () => {
-    // Save ad after payment
     db.ads.push({ id: Date.now().toString(), clicks: 0, impressions: 0, ...ad });
     saveDB(db);
     setAd({ title: "", link: "", file: null });
     setShowPayment(false);
   };
 
-  const handlePaymentCancel = () => {
-    setShowPayment(false);
-  };
-
-  async function handleFileChange(e) {
+  const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setLoading(true);
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", UPLOAD_PRESET);
@@ -44,12 +40,12 @@ function Ads({ user }) {
       const data = await res.json();
       setAd({ ...ad, file: data.secure_url });
     } catch (err) {
-      console.error("Error uploading to Cloudinary:", err);
+      console.error("Error uploading:", err);
       alert("Image upload failed!");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="card">
@@ -69,7 +65,6 @@ function Ads({ user }) {
         onChange={(e) => setAd({ ...ad, link: e.target.value })}
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       />
-
       <input type="file" onChange={handleFileChange} style={{ width: "100%", marginBottom: "10px" }} />
       {loading && <p>Uploading image...</p>}
       {ad.file && <img src={ad.file} alt="Uploaded" style={{ width: "100px", marginTop: "5px", borderRadius: "4px" }} />}
@@ -90,18 +85,20 @@ function Ads({ user }) {
         Create Ad
       </button>
 
+      {showPayment && (
+        <PaymentModal
+          amount={5000}
+          onConfirm={handlePaymentConfirm}
+          onCancel={() => setShowPayment(false)}
+        />
+      )}
+
       <h3 style={{ marginTop: "20px", textAlign: "center" }}>Created Ads</h3>
       <ul style={{ padding: 0, listStyle: "none" }}>
         {db.ads.map((a) => (
           <li
             key={a.id}
-            style={{
-              marginBottom: "10px",
-              padding: "8px",
-              border: "1px solid #eee",
-              borderRadius: "5px",
-              textAlign: "left",
-            }}
+            style={{ marginBottom: "10px", padding: "8px", border: "1px solid #eee", borderRadius: "5px", textAlign: "left" }}
           >
             <strong>{a.title}</strong>
             <br />
@@ -115,14 +112,6 @@ function Ads({ user }) {
           </li>
         ))}
       </ul>
-
-      {showPayment && (
-        <PaymentModal
-          amount={CHARGE_AMOUNT}
-          onConfirm={handlePaymentConfirm}
-          onCancel={handlePaymentCancel}
-        />
-      )}
     </div>
   );
 }

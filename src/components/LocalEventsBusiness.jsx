@@ -11,10 +11,11 @@ function LocalEventsAndBusiness({ user }) {
   const [loading, setLoading] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
 
-  const CHARGE_AMOUNT = 10000; // Sample charge for Local Events & Business
-
   function addItem() {
-    // Show payment modal first
+    if (!item.title || !item.category || !item.file) {
+      alert("Please fill title, select category and upload image before payment");
+      return;
+    }
     setShowPayment(true);
   }
 
@@ -25,15 +26,11 @@ function LocalEventsAndBusiness({ user }) {
     setShowPayment(false);
   };
 
-  const handlePaymentCancel = () => {
-    setShowPayment(false);
-  };
-
-  async function handleFileChange(e) {
+  const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setLoading(true);
+
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", UPLOAD_PRESET);
@@ -43,12 +40,12 @@ function LocalEventsAndBusiness({ user }) {
       const data = await res.json();
       setItem({ ...item, file: data.secure_url });
     } catch (err) {
-      console.error("Error uploading to Cloudinary:", err);
+      console.error("Error uploading:", err);
       alert("Image upload failed!");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="card">
@@ -68,7 +65,6 @@ function LocalEventsAndBusiness({ user }) {
         onChange={(e) => setItem({ ...item, link: e.target.value })}
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       />
-
       <select
         value={item.category}
         onChange={(e) => setItem({ ...item, category: e.target.value })}
@@ -102,18 +98,20 @@ function LocalEventsAndBusiness({ user }) {
         Add Item
       </button>
 
+      {showPayment && (
+        <PaymentModal
+          amount={10000}
+          onConfirm={handlePaymentConfirm}
+          onCancel={() => setShowPayment(false)}
+        />
+      )}
+
       <h3 style={{ marginTop: "20px", textAlign: "center" }}>Local Events & Business</h3>
       <ul style={{ padding: 0, listStyle: "none" }}>
         {db.localEvents.map((i) => (
           <li
             key={i.id}
-            style={{
-              marginBottom: "10px",
-              padding: "8px",
-              border: "1px solid #eee",
-              borderRadius: "5px",
-              textAlign: "left",
-            }}
+            style={{ marginBottom: "10px", padding: "8px", border: "1px solid #eee", borderRadius: "5px", textAlign: "left" }}
           >
             <strong>{i.title}</strong> ({i.category})
             <br />
@@ -127,14 +125,6 @@ function LocalEventsAndBusiness({ user }) {
           </li>
         ))}
       </ul>
-
-      {showPayment && (
-        <PaymentModal
-          amount={CHARGE_AMOUNT}
-          onConfirm={handlePaymentConfirm}
-          onCancel={handlePaymentCancel}
-        />
-      )}
     </div>
   );
 }
