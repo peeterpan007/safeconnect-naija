@@ -1,5 +1,3 @@
-/* PaymentModal.css */
-
 .payment-modal {
   position: fixed;
   top: 0;
@@ -44,17 +42,21 @@
   background-color: #1a1a1a;
   color: #fff;
   border-radius: 12px;
-  padding: 15px;
+  padding: 20px;
   margin-bottom: 20px;
   font-family: 'Courier New', Courier, monospace;
   position: relative;
-  height: 120px;
+  min-height: 120px;
 }
 
 .card-number {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   letter-spacing: 2px;
   margin-bottom: 10px;
+}
+
+.card-number span {
+  font-family: monospace;
 }
 
 .card-name,
@@ -68,38 +70,27 @@
   margin-bottom: 5px;
 }
 
-.card-expiry {
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
+.card-details {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
 }
 
-.card-cvc {
-  position: absolute;
-  bottom: 15px;
-  left: 15px;
+.card-expiry div:first-child,
+.card-cvc div:first-child {
+  font-size: 0.7rem;
+  color: #ccc;
 }
 
-.fade-in {
-  opacity: 0;
-  animation: fadeIn 0.3s forwards;
+.card-expiry div:last-child,
+.card-cvc div:last-child {
+  font-size: 0.9rem;
 }
 
-.fade-out {
+.fade-digit {
+  display: inline-block;
+  transition: opacity 0.5s ease;
   opacity: 1;
-  animation: fadeOut 0.3s forwards;
-}
-
-@keyframes fadeIn {
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes fadeOut {
-  to {
-    opacity: 0;
-  }
 }
 
 .payment-form input {
