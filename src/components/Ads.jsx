@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { db, saveDB } from "../db";
-import AdsLogo from "../assets/Ads.png"; // ✅ new logo
+import AdsLogo from "../assets/Ads.png";
+import PaymentModal from "./PaymentModal";
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
 const UPLOAD_PRESET = "your_upload_preset";
@@ -8,12 +9,26 @@ const UPLOAD_PRESET = "your_upload_preset";
 function Ads({ user }) {
   const [ad, setAd] = useState({ title: "", link: "", file: null });
   const [loading, setLoading] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+
+  const CHARGE_AMOUNT = 5000; // Sample charge for Ads
 
   function createAd() {
+    // Show payment modal first
+    setShowPayment(true);
+  }
+
+  const handlePaymentConfirm = () => {
+    // Save ad after payment
     db.ads.push({ id: Date.now().toString(), clicks: 0, impressions: 0, ...ad });
     saveDB(db);
     setAd({ title: "", link: "", file: null });
-  }
+    setShowPayment(false);
+  };
+
+  const handlePaymentCancel = () => {
+    setShowPayment(false);
+  };
 
   async function handleFileChange(e) {
     const file = e.target.files?.[0];
@@ -38,12 +53,10 @@ function Ads({ user }) {
 
   return (
     <div className="card">
-      {/* Logo Header */}
       <div style={{ textAlign: "center", marginBottom: "15px" }}>
         <img src={AdsLogo} alt="Ads" style={{ width: "120px" }} />
       </div>
 
-      {/* Form Inputs */}
       <input
         placeholder="Ad Title"
         value={ad.title}
@@ -77,7 +90,6 @@ function Ads({ user }) {
         Create Ad
       </button>
 
-      {/* Existing Ads */}
       <h3 style={{ marginTop: "20px", textAlign: "center" }}>Created Ads</h3>
       <ul style={{ padding: 0, listStyle: "none" }}>
         {db.ads.map((a) => (
@@ -103,6 +115,14 @@ function Ads({ user }) {
           </li>
         ))}
       </ul>
+
+      {showPayment && (
+        <PaymentModal
+          amount={CHARGE_AMOUNT}
+          onConfirm={handlePaymentConfirm}
+          onCancel={handlePaymentCancel}
+        />
+      )}
     </div>
   );
 }

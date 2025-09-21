@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { db, saveDB } from "../db";
-import EventLogo from "../assets/Event.png"; // ✅ new logo
+import EventLogo from "../assets/Event.png";
+import PaymentModal from "./PaymentModal";
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
 const UPLOAD_PRESET = "your_upload_preset";
@@ -8,12 +9,25 @@ const UPLOAD_PRESET = "your_upload_preset";
 function LocalEventsAndBusiness({ user }) {
   const [item, setItem] = useState({ title: "", link: "", file: null, category: "" });
   const [loading, setLoading] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+
+  const CHARGE_AMOUNT = 10000; // Sample charge for Local Events & Business
 
   function addItem() {
+    // Show payment modal first
+    setShowPayment(true);
+  }
+
+  const handlePaymentConfirm = () => {
     db.localEvents.push({ id: Date.now().toString(), ...item });
     saveDB(db);
     setItem({ title: "", link: "", file: null, category: "" });
-  }
+    setShowPayment(false);
+  };
+
+  const handlePaymentCancel = () => {
+    setShowPayment(false);
+  };
 
   async function handleFileChange(e) {
     const file = e.target.files?.[0];
@@ -38,7 +52,6 @@ function LocalEventsAndBusiness({ user }) {
 
   return (
     <div className="card">
-      {/* Logo Header */}
       <div style={{ textAlign: "center", marginBottom: "15px" }}>
         <img src={EventLogo} alt="Local Events & Business" style={{ width: "120px" }} />
       </div>
@@ -114,6 +127,14 @@ function LocalEventsAndBusiness({ user }) {
           </li>
         ))}
       </ul>
+
+      {showPayment && (
+        <PaymentModal
+          amount={CHARGE_AMOUNT}
+          onConfirm={handlePaymentConfirm}
+          onCancel={handlePaymentCancel}
+        />
+      )}
     </div>
   );
 }

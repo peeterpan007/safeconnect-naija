@@ -1,0 +1,148 @@
+import React, { useState, useEffect } from "react";
+import "./PaymentModal.css";
+
+const CARD_BRANDS = {
+  visa: "https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png",
+  mastercard: "https://upload.wikimedia.org/wikipedia/commons/0/04/Mastercard-logo.png",
+  default: "https://upload.wikimedia.org/wikipedia/commons/8/89/Generic_Credit_Card_icon.png"
+};
+
+function PaymentModal({ amount, onConfirm, onCancel }) {
+  const [card, setCard] = useState({ number: "", name: "", expiry: "", cvc: "" });
+  const [errors, setErrors] = useState({});
+  const [closing, setClosing] = useState(false);
+  const [prevBrand, setPrevBrand] = useState("default");
+  const [iconClass, setIconClass] = useState("fade-in");
+
+  const formatCardNumber = (num) =>
+    num.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
+
+  const detectCardBrand = (num) => {
+    if (!num) return "default";
+    const firstDigit = num[0];
+    if (firstDigit === "4") return "visa";
+    if (firstDigit === "5") return "mastercard";
+    return "default";
+  };
+
+  const handleChange = (field, value) => {
+    if (field === "number") value = value.replace(/\D/g, "").slice(0, 16);
+
+    if (field === "expiry") {
+      value = value.replace(/[^\d]/g, "").slice(0, 4);
+      if (value.length > 2) value = value.slice(0,2) + "/" + value.slice(2);
+    }
+
+    if (field === "cvc") {
+      const rawCVC = value.replace(/\D/g, "").slice(0, 3);
+      setCard({ ...card, cvc: rawCVC });
+      return;
+    }
+
+    setCard({ ...card, [field]: value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newErrors = {};
+    if (card.number.length !== 16) newErrors.number = "Card number must be 16 digits";
+    if (!card.name) newErrors.name = "Cardholder name required";
+    if (!/^\d{2}\/\d{2}$/.test(card.expiry)) newErrors.expiry = "Expiry must be MM/YY";
+    if (card.cvc.length !== 3) newErrors.cvc = "CVC must be 3 digits";
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+
+    alert(`Payment of ₦${amount.toLocaleString()} successful!`);
+    onConfirm();
+    setCard({ number: "", name: "", expiry: "", cvc: "" });
+  };
+
+  const handleCancel = () => {
+    setClosing(true);
+    setTimeout(() => onCancel(), 300);
+  };
+
+  const brand = detectCardBrand(card.number);
+  useEffect(() => {
+    if (brand !== prevBrand) {
+      setIconClass("fade-out");
+      const timer = setTimeout(() => {
+        setPrevBrand(brand);
+        setIconClass("fade-in");
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [brand, prevBrand]);
+
+  const maskedCVC = card.cvc.padEnd(3, "•");
+  const maskedExpiry = card.expiry.padEnd(5, "•");
+
+  return (
+    <div className={`payment-modal ${closing ? "fadeOut" : ""}`}>
+      <div className={`payment-content ${closing ? "slideDown" : ""}`}>
+        <h3>Pay ₦{amount.toLocaleString()}</h3>
+
+        <div className="card-preview" style={{ position: "relative" }}>
+          <img
+            src={CARD_BRANDS[prevBrand]}
+            alt={prevBrand}
+            className={iconClass}
+            style={{
+              position: "absolute",
+              top: "10px",
+              right: "10px",
+              width: "50px",
+              height: "auto"
+            }}
+          />
+          <div className="card-number">{formatCardNumber(card.number).padEnd(19, "•")}</div>
+          <div className="card-name">{card.name || "FULL NAME"}</div>
+          <div className="card-expiry">{maskedExpiry}</div>
+          <div className="card-cvc">{maskedCVC}</div>
+        </div>
+
+        <form onSubmit={handleSubmit} className="payment-form">
+          <input
+            type="text"
+            placeholder="Card Number"
+            value={formatCardNumber(card.number)}
+            onChange={(e) => handleChange("number", e.target.value)}
+          />
+          {errors.number && <small className="error">{errors.number}</small>}
+
+          <input
+            type="text"
+            placeholder="Cardholder Name"
+            value={card.name}
+            onChange={(e) => handleChange("name", e.target.value)}
+          />
+          {errors.name && <small className="error">{errors.name}</small>}
+
+          <input
+            type="text"
+            placeholder="Expiry MM/YY"
+            value={card.expiry}
+            onChange={(e) => handleChange("expiry", e.target.value)}
+          />
+          {errors.expiry && <small className="error">{errors.expiry}</small>}
+
+          <input
+            type="text"
+            placeholder="CVC"
+            value={"*".repeat(card.cvc.length)}
+            onChange={(e) => handleChange("cvc", e.target.value)}
+          />
+          {errors.cvc && <small className="error">{errors.cvc}</small>}
+
+          <button type="submit">Pay & Confirm</button>
+          <button type="button" onClick={handleCancel} className="cancel-btn">
+            Cancel
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default PaymentModal;
