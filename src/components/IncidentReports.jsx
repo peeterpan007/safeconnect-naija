@@ -6,6 +6,9 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
 import IncidentReportingLogo from "../assets/IncidentReporting.png"; // ✅ logo
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
@@ -229,45 +232,27 @@ function IncidentReports({ user }) {
         )}
       </div>
 
-      {/* Date & Description with placeholder inside date input */}
-      {/* Date & Description */}
-<div style={{ position: "relative", marginBottom: "10px" }}>
-  <input
-    type="date"
-    value={incident.date}
-    onChange={(e) => setIncident({ ...incident, date: e.target.value })}
-    style={{
-      width: "95%",
-      padding: "8px",
-      borderRadius: "6px",
-      border: "1px solid #ccc",
-      color: incident.date ? "#000" : "#555",
-    }}
-  />
-  {!incident.date && (
-    <span
-      style={{
-        position: "absolute",
-        left: "12px",
-        top: "50%",
-        transform: "translateY(-50%)",
-        color: "#555",
-        pointerEvents: "none",
-        fontSize: "0.9rem",
-      }}
-    >
-      Select Date
-    </span>
-  )}
-</div>
+      {/* Date */}
+      <div style={{ marginBottom: "10px" }}>
+        <DatePicker
+          selected={incident.date ? new Date(incident.date) : null}
+          onChange={(date) =>
+            setIncident({ ...incident, date: date ? date.toISOString().split("T")[0] : "" })
+          }
+          dateFormat="dd/MM/yyyy"
+          placeholderText="Select date dd/mm/yy"
+          className="custom-input"
+          wrapperClassName="date-picker-wrapper"
+        />
+      </div>
 
-<textarea
-  placeholder="Short Description"
-  value={incident.description}
-  onChange={(e) => setIncident({ ...incident, description: e.target.value })}
-  style={{ width: "95%", marginBottom: "10px", padding: "8px" }}
-/>
-
+      {/* Description */}
+      <textarea
+        placeholder="Short Description"
+        value={incident.description}
+        onChange={(e) => setIncident({ ...incident, description: e.target.value })}
+        style={{ width: "95%", marginBottom: "10px", padding: "8px" }}
+      />
 
       {/* Image Upload */}
       <input type="file" onChange={handleFileChange} style={{ width: "100%", marginBottom: "10px" }} />
