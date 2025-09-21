@@ -1,12 +1,10 @@
-/* PaymentModal.css */
-
 .payment-modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0,0,0,0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15,9 +13,7 @@
   transition: opacity 0.3s ease;
 }
 
-.payment-modal.fadeOut {
-  opacity: 0;
-}
+.payment-modal.fadeOut { opacity: 0; }
 
 .payment-content {
   background-color: #fff;
@@ -25,14 +21,13 @@
   padding: 20px 25px;
   width: 350px;
   max-width: 90%;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.25);
   transform: translateY(0);
   transition: transform 0.3s ease;
+  position: relative;
 }
 
-.payment-content.slideDown {
-  transform: translateY(50px);
-}
+.payment-content.slideDown { transform: translateY(50px); }
 
 .payment-content h3 {
   text-align: center;
@@ -57,63 +52,26 @@
   margin-bottom: 10px;
 }
 
-.card-number span {
-  font-family: monospace;
-  margin-right: 1px; /* slightly better spacing */
-}
+.card-number span { margin-right: 1px; }
 
 .card-name,
 .card-expiry,
-.card-cvc {
-  font-size: 0.9rem;
-  text-transform: uppercase;
-}
+.card-cvc { font-size: 0.9rem; text-transform: uppercase; }
 
-.card-name {
-  margin-bottom: 5px;
-}
+.card-name { margin-bottom: 5px; }
 
-.card-details {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 10px;
-}
+.card-details { display: flex; justify-content: space-between; margin-top: 10px; }
 
 .card-expiry div:first-child,
-.card-cvc div:first-child {
-  font-size: 0.7rem;
-  color: #ccc;
-}
-
+.card-cvc div:first-child { font-size: 0.7rem; color: #ccc; }
 .card-expiry div:last-child,
-.card-cvc div:last-child {
-  font-size: 0.9rem;
-}
+.card-cvc div:last-child { font-size: 0.9rem; }
 
-.card-logo {
-  transition: opacity 0.3s ease;
-  opacity: 1;
-}
+.card-logo { transition: opacity 0.3s ease; opacity: 1; }
+.fade-in { opacity: 1; }
+.fade-out { opacity: 0; }
 
-.fade-in {
-  opacity: 1;
-}
-
-.fade-out {
-  opacity: 0;
-}
-
-/* Smooth last-digit fade for number and CVC */
-.fade-digit {
-  display: inline-block;
-  transition: opacity 0.3s ease;
-  opacity: 1;
-}
-
-/* Optional hidden state (if you want to fade out before masking) */
-.fade-digit.hidden {
-  opacity: 0;
-}
+.fade-digit { display: inline-block; transition: opacity 0.3s ease; }
 
 .payment-form input {
   width: 100%;
@@ -137,28 +95,74 @@
   transition: background-color 0.2s;
 }
 
-.payment-form button:hover:not(:disabled) {
-  background-color: #0056b3;
+.payment-form button:hover:not(:disabled) { background-color: #0056b3; }
+.payment-form button:disabled { cursor: not-allowed; opacity: 0.5; }
+
+.payment-form .cancel-btn { background-color: #ccc; color: #333; margin-top: 10px; }
+.payment-form .cancel-btn:hover { background-color: #999; }
+
+.error { color: red; font-size: 0.8rem; margin-bottom: 5px; display: block; }
+
+/* Confirmation overlay */
+.confirmation-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  animation: fadeIn 0.3s forwards;
+  z-index: 10;
 }
 
-.payment-form button:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
+.checkmark {
+  font-size: 3rem;
+  color: #4BB543;
+  animation: pop 0.5s ease-out forwards;
 }
 
-.payment-form .cancel-btn {
-  background-color: #ccc;
-  color: #333;
+.confirmation-text {
   margin-top: 10px;
+  font-size: 1.2rem;
+  color: #fff;
+  font-weight: bold;
 }
 
-.payment-form .cancel-btn:hover {
-  background-color: #999;
+@keyframes pop {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); }
 }
 
-.error {
-  color: red;
-  font-size: 0.8rem;
-  margin-bottom: 5px;
-  display: block;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Confetti */
+.confetti-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 15;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  top: -10px;
+  transform: rotate(45deg);
+  animation: confettiFall 1.5s forwards;
+}
+
+.confetti-piece:nth-child(odd) { background-color: #4BB543; }
+.confetti-piece:nth-child(even) { background-color: #ff3b30; }
+
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(200px) translateX(calc(-50px + 100px * var(--random))) rotate(360deg); opacity: 0; }
 }

@@ -18,6 +18,9 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
 
   const [maskedNumber, setMaskedNumber] = useState([]);
   const [maskedCVC, setMaskedCVC] = useState([]);
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+
   const lastDigitTimeoutRef = useRef(null);
 
   const detectCardBrand = (num) => {
@@ -35,9 +38,10 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
     }
     if (field === "cvc") value = value.replace(/\D/g, "").slice(0, 3);
     if (field === "name") value = value.slice(0, 50);
+
     setCard({ ...card, [field]: value });
 
-    // Masking logic for card number
+    // Mask number
     if (field === "number") {
       if (lastDigitTimeoutRef.current) clearTimeout(lastDigitTimeoutRef.current);
       const numArr = value
@@ -49,10 +53,12 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
       }, 500);
     }
 
-    // Masking logic for CVC
+    // Mask CVC
     if (field === "cvc") {
       if (lastDigitTimeoutRef.current) clearTimeout(lastDigitTimeoutRef.current);
-      const cvcArr = value.split("").map((c, i) => ({ char: i === value.length - 1 ? c : "*", isLast: i === value.length - 1 }));
+      const cvcArr = value
+        .split("")
+        .map((c, i) => ({ char: i === value.length - 1 ? c : "*", isLast: i === value.length - 1 }));
       setMaskedCVC(cvcArr);
       lastDigitTimeoutRef.current = setTimeout(() => {
         setMaskedCVC(value.split("").map((c) => ({ char: "*", isLast: false })));
@@ -77,11 +83,21 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
-    alert(`Payment of ₦${amount.toLocaleString()} successful!`);
-    onConfirm();
+    // Show confirmation and confetti
+    setPaymentConfirmed(true);
+    setShowConfetti(true);
+
     setCard({ number: "", name: "", expiry: "", cvc: "" });
     setMaskedNumber([]);
     setMaskedCVC([]);
+
+    setTimeout(() => {
+      setPaymentConfirmed(false);
+      setShowConfetti(false);
+      onConfirm();
+      setClosing(true);
+      setTimeout(() => onCancel(), 300);
+    }, 2000);
   };
 
   const handleCancel = () => {
@@ -89,7 +105,6 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
     setTimeout(() => onCancel(), 300);
   };
 
-  // Smooth logo transition
   const brand = detectCardBrand(card.number);
   useEffect(() => {
     if (brand !== prevBrand) {
@@ -101,8 +116,6 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
       return () => clearTimeout(timer);
     }
   }, [brand, prevBrand]);
-
-  const maskedExpiry = card.expiry.padEnd(5, "•");
 
   const renderMasked = (arr) =>
     arr.map((item, i) => (
@@ -116,8 +129,7 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
       <div className={`payment-content ${closing ? "slideDown" : ""}`}>
         <h3>Pay ₦{amount.toLocaleString()}</h3>
 
-        {/* Card Preview */}
-        <div className="card-preview" style={{ position: "relative", padding: "20px", borderRadius: "10px", background: "#1a1f71", color: "#fff" }}>
+        <div className="card-preview">
           {CARD_BRANDS[prevBrand] && (
             <img
               src={CARD_BRANDS[prevBrand]}
@@ -127,72 +139,83 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
             />
           )}
 
-          {/* Card Number */}
-          <div className="card-number" style={{ fontSize: "1.4em", letterSpacing: "2px" }}>
+          <div className="card-number">
             {maskedNumber.length ? renderMasked(maskedNumber) : "•••• •••• •••• ••••"}
           </div>
 
-          {/* Cardholder Name */}
-          <div className="card-name" style={{ marginTop: "15px", fontSize: "0.9em" }}>
-            {card.name || "FULL NAME"}
-          </div>
+          <div className="card-name">{card.name || "FULL NAME"}</div>
 
-          {/* Expiry & CVC row */}
-          <div className="card-details" style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
+          <div className="card-details">
             <div className="card-expiry">
-              <div style={{ fontSize: "0.7em", color: "#ccc" }}>Expiry</div>
+              <div>Expiry</div>
               <div>{card.expiry || "MM/YY"}</div>
             </div>
             <div className="card-cvc">
-              <div style={{ fontSize: "0.7em", color: "#ccc" }}>CVC</div>
+              <div>CVC</div>
               <div>{maskedCVC.length ? renderMasked(maskedCVC) : "•••"}</div>
             </div>
           </div>
         </div>
 
-        {/* Payment Form */}
-        <form onSubmit={handleSubmit} className="payment-form" style={{ marginTop: "20px" }}>
-          <input
-            type="text"
-            placeholder="Card Number"
-            value={card.number}
-            onChange={(e) => handleChange("number", e.target.value)}
-            maxLength={16}
-          />
-          {errors.number && <small className="error">{errors.number}</small>}
+        {showConfetti && (
+          <div className="confetti-container">
+            {[...Array(30)].map((_, i) => (
+              <div key={i} className="confetti-piece" style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random()}s` }}></div>
+            ))}
+          </div>
+        )}
 
-          <input
-            type="text"
-            placeholder="Cardholder Name"
-            value={card.name}
-            onChange={(e) => handleChange("name", e.target.value)}
-          />
-          {errors.name && <small className="error">{errors.name}</small>}
+        {paymentConfirmed && (
+          <div className="confirmation-overlay">
+            <div className="checkmark">✓</div>
+            <div className="confirmation-text">Payment Confirmed</div>
+          </div>
+        )}
 
-          <input
-            type="text"
-            placeholder="Expiry MM/YY"
-            value={card.expiry}
-            onChange={(e) => handleChange("expiry", e.target.value)}
-          />
-          {errors.expiry && <small className="error">{errors.expiry}</small>}
+        {!paymentConfirmed && (
+          <form onSubmit={handleSubmit} className="payment-form">
+            <input
+              type="text"
+              placeholder="Card Number"
+              value={card.number}
+              onChange={(e) => handleChange("number", e.target.value)}
+              maxLength={16}
+            />
+            {errors.number && <small className="error">{errors.number}</small>}
 
-          <input
-            type="text"
-            placeholder="CVC"
-            value={card.cvc}
-            onChange={(e) => handleChange("cvc", e.target.value)}
-            maxLength={3}
-          />
-          {errors.cvc && <small className="error">{errors.cvc}</small>}
+            <input
+              type="text"
+              placeholder="Cardholder Name"
+              value={card.name}
+              onChange={(e) => handleChange("name", e.target.value)}
+            />
+            {errors.name && <small className="error">{errors.name}</small>}
 
-          <button type="submit" disabled={!isFormValid()} style={{ opacity: isFormValid() ? 1 : 0.5 }}>
-            Pay & Confirm
-          </button>
-          <button type="button" onClick={handleCancel} className="cancel-btn">
-            Cancel
-          </button>
-        </form>
+            <input
+              type="text"
+              placeholder="Expiry MM/YY"
+              value={card.expiry}
+              onChange={(e) => handleChange("expiry", e.target.value)}
+            />
+            {errors.expiry && <small className="error">{errors.expiry}</small>}
+
+            <input
+              type="text"
+              placeholder="CVC"
+              value={card.cvc}
+              onChange={(e) => handleChange("cvc", e.target.value)}
+              maxLength={3}
+            />
+            {errors.cvc && <small className="error">{errors.cvc}</small>}
+
+            <button type="submit" disabled={!isFormValid()} style={{ opacity: isFormValid() ? 1 : 0.5 }}>
+              Pay & Confirm
+            </button>
+            <button type="button" onClick={handleCancel} className="cancel-btn">
+              Cancel
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
