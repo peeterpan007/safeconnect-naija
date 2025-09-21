@@ -1,3 +1,5 @@
+/* PaymentModal.css */
+
 .payment-modal {
   position: fixed;
   top: 0;
@@ -39,7 +41,7 @@
 }
 
 .card-preview {
-  background-color: #1a1a1a;
+  background-color: #1a1f71;
   color: #fff;
   border-radius: 12px;
   padding: 20px;
@@ -50,13 +52,14 @@
 }
 
 .card-number {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   letter-spacing: 2px;
   margin-bottom: 10px;
 }
 
 .card-number span {
   font-family: monospace;
+  margin-right: 1px; /* slightly better spacing */
 }
 
 .card-name,
@@ -87,10 +90,29 @@
   font-size: 0.9rem;
 }
 
+.card-logo {
+  transition: opacity 0.3s ease;
+  opacity: 1;
+}
+
+.fade-in {
+  opacity: 1;
+}
+
+.fade-out {
+  opacity: 0;
+}
+
+/* Smooth last-digit fade for number and CVC */
 .fade-digit {
   display: inline-block;
-  transition: opacity 0.5s ease;
+  transition: opacity 0.3s ease;
   opacity: 1;
+}
+
+/* Optional hidden state (if you want to fade out before masking) */
+.fade-digit.hidden {
+  opacity: 0;
 }
 
 .payment-form input {

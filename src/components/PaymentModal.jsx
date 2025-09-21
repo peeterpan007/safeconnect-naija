@@ -27,39 +27,6 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
     return "default";
   };
 
-  // Mask number and CVC with last-digit fade, add spaces every 4 digits
-  useEffect(() => {
-    if (lastDigitTimeoutRef.current) clearTimeout(lastDigitTimeoutRef.current);
-
-    const addSpaces = (str) =>
-      str.split("").reduce((acc, char, i) => {
-        acc.push({ char, isLast: i === str.length - 1 });
-        if ((i + 1) % 4 === 0 && i !== str.length - 1) acc.push({ char: " ", isLast: false });
-        return acc;
-      }, []);
-
-    const maskedNumArr = addSpaces(
-      card.number
-        .split("")
-        .map((c, i) => (i === card.number.length - 1 ? c : "*"))
-        .join("")
-    );
-    setMaskedNumber(maskedNumArr);
-
-    lastDigitTimeoutRef.current = setTimeout(() => {
-      setMaskedNumber(addSpaces("*".repeat(card.number.length)));
-    }, 500);
-
-    const maskedC = card.cvc
-      .split("")
-      .map((c, i) => ({ char: i === card.cvc.length - 1 ? c : "*", isLast: i === card.cvc.length - 1 }));
-    setMaskedCVC(maskedC);
-
-    setTimeout(() => {
-      setMaskedCVC(card.cvc.split("").map(() => ({ char: "*", isLast: false })));
-    }, 500);
-  }, [card.number, card.cvc]);
-
   const handleChange = (field, value) => {
     if (field === "number") value = value.replace(/\D/g, "").slice(0, 16);
     if (field === "expiry") {
@@ -69,6 +36,28 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
     if (field === "cvc") value = value.replace(/\D/g, "").slice(0, 3);
     if (field === "name") value = value.slice(0, 50);
     setCard({ ...card, [field]: value });
+
+    // Masking logic for card number
+    if (field === "number") {
+      if (lastDigitTimeoutRef.current) clearTimeout(lastDigitTimeoutRef.current);
+      const numArr = value
+        .split("")
+        .map((c, i) => ({ char: i === value.length - 1 ? c : "*", isLast: i === value.length - 1 }));
+      setMaskedNumber(numArr);
+      lastDigitTimeoutRef.current = setTimeout(() => {
+        setMaskedNumber(value.split("").map((c) => ({ char: "*", isLast: false })));
+      }, 500);
+    }
+
+    // Masking logic for CVC
+    if (field === "cvc") {
+      if (lastDigitTimeoutRef.current) clearTimeout(lastDigitTimeoutRef.current);
+      const cvcArr = value.split("").map((c, i) => ({ char: i === value.length - 1 ? c : "*", isLast: i === value.length - 1 }));
+      setMaskedCVC(cvcArr);
+      lastDigitTimeoutRef.current = setTimeout(() => {
+        setMaskedCVC(value.split("").map((c) => ({ char: "*", isLast: false })));
+      }, 500);
+    }
   };
 
   const isFormValid = () =>
@@ -100,6 +89,7 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
     setTimeout(() => onCancel(), 300);
   };
 
+  // Smooth logo transition
   const brand = detectCardBrand(card.number);
   useEffect(() => {
     if (brand !== prevBrand) {
