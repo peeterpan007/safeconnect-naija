@@ -7,59 +7,13 @@ body {
 /* Header */
 .app-header {
   background-color: #311eff;
-  padding: 0.8em 1em;
+  padding: 20px;
   color: #fff;
   display: flex;
+  justify-content: center;
   align-items: center;
-  gap: 0.5em;
-  flex-wrap: nowrap;          /* default: no wrap */
-  justify-content: flex-start;
-  box-sizing: border-box;
 }
 
-/* Logo */
-.header-logo {
-  height: 2em;                /* scales with text */
-  width: auto;
-  flex-shrink: 0;             /* prevents shrinking */
-}
-
-/* Header Text */
-.app-header h1 {
-  font-size: 1.5em;
-  margin: 0;
-  line-height: 1;
-  white-space: nowrap;         /* prevents wrapping on medium screens */
-}
-
-/* Medium screens (tablet, small laptops) */
-@media (max-width: 768px) {
-  .app-header h1 {
-    font-size: 1.3em;
-  }
-  .header-logo {
-    height: 1.7em;
-  }
-}
-
-/* Very small screens (phones portrait) */
-@media (max-width: 480px) {
-  .app-header {
-    flex-wrap: wrap;          /* allow wrapping */
-    justify-content: center;  /* center logo and text */
-    text-align: center;
-  }
-  .header-logo {
-    height: 1.5em;
-    margin-bottom: 0.2em;     /* spacing below logo */
-  }
-  .app-header h1 {
-    font-size: 1.1em;
-    white-space: normal;      /* allow wrapping */
-  }
-}
-
-/* Main Content */
 .main-content {
   padding: 0 10px 80px;
 }
