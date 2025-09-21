@@ -6,31 +6,29 @@ import PaymentModal from "./PaymentModal";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
 const UPLOAD_PRESET = "your_upload_preset";
 
+function validateLink(link) {
+  try {
+    new URL(link);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function LocalEventsAndBusiness({ user }) {
   const [item, setItem] = useState({ title: "", link: "", file: null, category: "" });
   const [loading, setLoading] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
 
   function addItem() {
-    if (!item.title || !item.category || !item.file) {
-      alert("Please fill title, select category and upload image before payment");
-      return;
-    }
-    setShowPayment(true);
+    setShowPayment(true); // ✅ Always open payment modal
   }
 
-  const handlePaymentConfirm = () => {
-    db.localEvents.push({ id: Date.now().toString(), ...item });
-    saveDB(db);
-    setItem({ title: "", link: "", file: null, category: "" });
-    setShowPayment(false);
-  };
-
-  const handleFileChange = async (e) => {
+  async function handleFileChange(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setLoading(true);
 
+    setLoading(true);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", UPLOAD_PRESET);
@@ -40,12 +38,19 @@ function LocalEventsAndBusiness({ user }) {
       const data = await res.json();
       setItem({ ...item, file: data.secure_url });
     } catch (err) {
-      console.error("Error uploading:", err);
+      console.error("Error uploading to Cloudinary:", err);
       alert("Image upload failed!");
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  function handlePaymentConfirm() {
+    db.localEvents.push({ id: Date.now().toString(), ...item });
+    saveDB(db);
+    setItem({ title: "", link: "", file: null, category: "" });
+    setShowPayment(false);
+  }
 
   return (
     <div className="card">
@@ -60,11 +65,12 @@ function LocalEventsAndBusiness({ user }) {
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       />
       <input
-        placeholder="Link"
+        placeholder="Link (optional)"
         value={item.link}
         onChange={(e) => setItem({ ...item, link: e.target.value })}
         style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
       />
+
       <select
         value={item.category}
         onChange={(e) => setItem({ ...item, category: e.target.value })}
@@ -80,7 +86,9 @@ function LocalEventsAndBusiness({ user }) {
 
       <input type="file" onChange={handleFileChange} style={{ width: "100%", marginBottom: "10px" }} />
       {loading && <p>Uploading image...</p>}
-      {item.file && <img src={item.file} alt="Uploaded" style={{ width: "100px", marginTop: "5px", borderRadius: "4px" }} />}
+      {item.file && (
+        <img src={item.file} alt="Uploaded" style={{ width: "100px", marginTop: "5px", borderRadius: "4px" }} />
+      )}
 
       <button
         onClick={addItem}
@@ -111,17 +119,25 @@ function LocalEventsAndBusiness({ user }) {
         {db.localEvents.map((i) => (
           <li
             key={i.id}
-            style={{ marginBottom: "10px", padding: "8px", border: "1px solid #eee", borderRadius: "5px", textAlign: "left" }}
+            style={{
+              marginBottom: "10px",
+              padding: "8px",
+              border: "1px solid #eee",
+              borderRadius: "5px",
+              textAlign: "left",
+            }}
           >
             <strong>{i.title}</strong> ({i.category})
             <br />
-            {i.link && (
+            {i.link && validateLink(i.link) && (
               <a href={i.link} target="_blank" rel="noreferrer">
                 {i.link}
               </a>
             )}
             <br />
-            {i.file && <img src={i.file} alt="Uploaded" style={{ width: "100px", marginTop: "5px", borderRadius: "4px" }} />}
+            {i.file && (
+              <img src={i.file} alt="Uploaded" style={{ width: "100px", marginTop: "5px", borderRadius: "4px" }} />
+            )}
           </li>
         ))}
       </ul>

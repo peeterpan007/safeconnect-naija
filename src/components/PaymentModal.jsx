@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import "./PaymentModal.css";
 
+import visaLogo from "../assets/visa.png"; // ✅ local Visa logo
+
 const CARD_BRANDS = {
-  visa: "https://upload.wikimedia.org/wikipedia/commons/4/41/Visa_Logo.png",
+  visa: visaLogo,
   mastercard: "https://upload.wikimedia.org/wikipedia/commons/0/04/Mastercard-logo.png",
-  default: "https://upload.wikimedia.org/wikipedia/commons/8/89/Generic_Credit_Card_icon.png"
+  default: "" // Removed invalid default
 };
 
 function PaymentModal({ amount, onConfirm, onCancel }) {
@@ -39,16 +41,14 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
     setCard({ ...card, [field]: value });
   };
 
-  // Handle CVC separately to fix masking
+  // CVC masking
   const handleCVCChange = (e) => {
     const input = e.target.value;
     let newCVC = card.cvc;
 
-    // Added a digit
     if (input.length > card.cvc.length) {
       newCVC = (card.cvc + input.slice(-1)).slice(0, 3);
     }
-    // Deleted a digit
     if (input.length < card.cvc.length) {
       newCVC = newCVC.slice(0, input.length);
     }
@@ -56,7 +56,7 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
     setCard({ ...card, cvc: newCVC });
   };
 
-  // Validate form fields
+  // Validate form
   const isFormValid = () => {
     return (
       card.number.replace(/\s/g, "").length === 16 &&
@@ -108,12 +108,14 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
         <h3>Pay ₦{amount.toLocaleString()}</h3>
 
         <div className="card-preview" style={{ position: "relative" }}>
-          <img
-            src={CARD_BRANDS[prevBrand]}
-            alt={prevBrand}
-            className={iconClass}
-            style={{ position: "absolute", top: "10px", right: "10px", width: "50px" }}
-          />
+          {CARD_BRANDS[prevBrand] && (
+            <img
+              src={CARD_BRANDS[prevBrand]}
+              alt={prevBrand}
+              className={iconClass}
+              style={{ position: "absolute", top: "10px", right: "10px", width: "50px" }}
+            />
+          )}
           <div className="card-number">{formatCardNumber(card.number).padEnd(19, "•")}</div>
           <div className="card-name">{card.name || "FULL NAME"}</div>
           <div className="card-expiry">{maskedExpiry}</div>
@@ -148,7 +150,7 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
           <input
             type="text"
             placeholder="CVC"
-            value={"*".repeat(card.cvc.length)} // proper masking
+            value={"*".repeat(card.cvc.length)}
             onChange={handleCVCChange}
           />
           {errors.cvc && <small className="error">{errors.cvc}</small>}
