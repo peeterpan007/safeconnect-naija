@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./PaymentModal.css";
 
-import visaLogo from "../assets/visa.png"; // ✅ local Visa logo
+import visaLogo from "../assets/visa.png";
 
 const CARD_BRANDS = {
   visa: visaLogo,
   mastercard: "https://upload.wikimedia.org/wikipedia/commons/0/04/Mastercard-logo.png",
-  default: "" // Removed invalid default
+  default: ""
 };
 
 function PaymentModal({ amount, onConfirm, onCancel }) {
@@ -16,60 +16,71 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
   const [prevBrand, setPrevBrand] = useState("default");
   const [iconClass, setIconClass] = useState("fade-in");
 
-  // Format card number as "1234 5678 9012 3456"
-  const formatCardNumber = (num) =>
-    num.replace(/\D/g, "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
+  const [maskedNumber, setMaskedNumber] = useState([]);
+  const [maskedCVC, setMaskedCVC] = useState([]);
+  const lastDigitTimeoutRef = useRef(null);
 
-  // Detect brand for icon
   const detectCardBrand = (num) => {
     if (!num) return "default";
-    const firstDigit = num[0];
-    if (firstDigit === "4") return "visa";
-    if (firstDigit === "5") return "mastercard";
+    if (num.startsWith("4")) return "visa";
+    if (num.startsWith("5")) return "mastercard";
     return "default";
   };
 
-  // Handle input changes
+  // Mask number and CVC with last-digit fade, add spaces every 4 digits
+  useEffect(() => {
+    if (lastDigitTimeoutRef.current) clearTimeout(lastDigitTimeoutRef.current);
+
+    const addSpaces = (str) =>
+      str.split("").reduce((acc, char, i) => {
+        acc.push({ char, isLast: i === str.length - 1 });
+        if ((i + 1) % 4 === 0 && i !== str.length - 1) acc.push({ char: " ", isLast: false });
+        return acc;
+      }, []);
+
+    const maskedNumArr = addSpaces(
+      card.number
+        .split("")
+        .map((c, i) => (i === card.number.length - 1 ? c : "*"))
+        .join("")
+    );
+    setMaskedNumber(maskedNumArr);
+
+    lastDigitTimeoutRef.current = setTimeout(() => {
+      setMaskedNumber(addSpaces("*".repeat(card.number.length)));
+    }, 500);
+
+    const maskedC = card.cvc
+      .split("")
+      .map((c, i) => ({ char: i === card.cvc.length - 1 ? c : "*", isLast: i === card.cvc.length - 1 }));
+    setMaskedCVC(maskedC);
+
+    setTimeout(() => {
+      setMaskedCVC(card.cvc.split("").map(() => ({ char: "*", isLast: false })));
+    }, 500);
+  }, [card.number, card.cvc]);
+
   const handleChange = (field, value) => {
-    if (field === "number") {
-      value = value.replace(/\D/g, "").slice(0, 16);
-    }
+    if (field === "number") value = value.replace(/\D/g, "").slice(0, 16);
     if (field === "expiry") {
       value = value.replace(/[^\d]/g, "").slice(0, 4);
       if (value.length > 2) value = value.slice(0, 2) + "/" + value.slice(2);
     }
+    if (field === "cvc") value = value.replace(/\D/g, "").slice(0, 3);
+    if (field === "name") value = value.slice(0, 50);
     setCard({ ...card, [field]: value });
   };
 
-  // CVC masking
-  const handleCVCChange = (e) => {
-    const input = e.target.value;
-    let newCVC = card.cvc;
-
-    if (input.length > card.cvc.length) {
-      newCVC = (card.cvc + input.slice(-1)).slice(0, 3);
-    }
-    if (input.length < card.cvc.length) {
-      newCVC = newCVC.slice(0, input.length);
-    }
-
-    setCard({ ...card, cvc: newCVC });
-  };
-
-  // Validate form
-  const isFormValid = () => {
-    return (
-      card.number.replace(/\s/g, "").length === 16 &&
-      card.name.trim() !== "" &&
-      /^\d{2}\/\d{2}$/.test(card.expiry) &&
-      card.cvc.length === 3
-    );
-  };
+  const isFormValid = () =>
+    card.number.length === 16 &&
+    card.name.trim() !== "" &&
+    /^\d{2}\/\d{2}$/.test(card.expiry) &&
+    card.cvc.length === 3;
 
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {};
-    if (card.number.replace(/\s/g, "").length !== 16) newErrors.number = "Card number must be 16 digits";
+    if (card.number.length !== 16) newErrors.number = "Card number must be 16 digits";
     if (!card.name.trim()) newErrors.name = "Cardholder name required";
     if (!/^\d{2}\/\d{2}$/.test(card.expiry)) newErrors.expiry = "Expiry must be MM/YY";
     if (card.cvc.length !== 3) newErrors.cvc = "CVC must be 3 digits";
@@ -80,6 +91,8 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
     alert(`Payment of ₦${amount.toLocaleString()} successful!`);
     onConfirm();
     setCard({ number: "", name: "", expiry: "", cvc: "" });
+    setMaskedNumber([]);
+    setMaskedCVC([]);
   };
 
   const handleCancel = () => {
@@ -99,15 +112,22 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
     }
   }, [brand, prevBrand]);
 
-  const maskedCVC = card.cvc.replace(/./g, "*").padEnd(3, "•");
   const maskedExpiry = card.expiry.padEnd(5, "•");
+
+  const renderMasked = (arr) =>
+    arr.map((item, i) => (
+      <span key={i} className={item.isLast ? "fade-digit" : ""}>
+        {item.char}
+      </span>
+    ));
 
   return (
     <div className={`payment-modal ${closing ? "fadeOut" : ""}`}>
       <div className={`payment-content ${closing ? "slideDown" : ""}`}>
         <h3>Pay ₦{amount.toLocaleString()}</h3>
 
-        <div className="card-preview" style={{ position: "relative" }}>
+        {/* Card Preview */}
+        <div className="card-preview" style={{ position: "relative", padding: "20px", borderRadius: "10px", background: "#1a1f71", color: "#fff" }}>
           {CARD_BRANDS[prevBrand] && (
             <img
               src={CARD_BRANDS[prevBrand]}
@@ -116,18 +136,38 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
               style={{ position: "absolute", top: "10px", right: "10px", width: "50px" }}
             />
           )}
-          <div className="card-number">{formatCardNumber(card.number).padEnd(19, "•")}</div>
-          <div className="card-name">{card.name || "FULL NAME"}</div>
-          <div className="card-expiry">{maskedExpiry}</div>
-          <div className="card-cvc">{maskedCVC}</div>
+
+          {/* Card Number */}
+          <div className="card-number" style={{ fontSize: "1.4em", letterSpacing: "2px" }}>
+            {maskedNumber.length ? renderMasked(maskedNumber) : "•••• •••• •••• ••••"}
+          </div>
+
+          {/* Cardholder Name */}
+          <div className="card-name" style={{ marginTop: "15px", fontSize: "0.9em" }}>
+            {card.name || "FULL NAME"}
+          </div>
+
+          {/* Expiry & CVC row */}
+          <div className="card-details" style={{ display: "flex", justifyContent: "space-between", marginTop: "10px" }}>
+            <div className="card-expiry">
+              <div style={{ fontSize: "0.7em", color: "#ccc" }}>Expiry</div>
+              <div>{card.expiry || "MM/YY"}</div>
+            </div>
+            <div className="card-cvc">
+              <div style={{ fontSize: "0.7em", color: "#ccc" }}>CVC</div>
+              <div>{maskedCVC.length ? renderMasked(maskedCVC) : "•••"}</div>
+            </div>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="payment-form">
+        {/* Payment Form */}
+        <form onSubmit={handleSubmit} className="payment-form" style={{ marginTop: "20px" }}>
           <input
             type="text"
             placeholder="Card Number"
-            value={formatCardNumber(card.number)}
+            value={card.number}
             onChange={(e) => handleChange("number", e.target.value)}
+            maxLength={16}
           />
           {errors.number && <small className="error">{errors.number}</small>}
 
@@ -150,8 +190,9 @@ function PaymentModal({ amount, onConfirm, onCancel }) {
           <input
             type="text"
             placeholder="CVC"
-            value={"*".repeat(card.cvc.length)}
-            onChange={handleCVCChange}
+            value={card.cvc}
+            onChange={(e) => handleChange("cvc", e.target.value)}
+            maxLength={3}
           />
           {errors.cvc && <small className="error">{errors.cvc}</small>}
 
