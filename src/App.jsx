@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   FaHome,
   FaMapMarkerAlt,
@@ -17,8 +17,6 @@ import NewsUpdate from "./components/NewsUpdate";
 import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
 
 import logo from "./assets/Connect4.jpg";
-import SCLogo2 from "./assets/SCLogo2.png"; // splash screen
-import SCLogo3 from "./assets/SCLogo3.png"; // header
 import "./App.css";
 
 import Login from "./components/Login";
@@ -29,12 +27,6 @@ const user = { id: "1", area: "NY", interests: ["security", "home services"] };
 function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [authTab, setAuthTab] = useState("login");
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 2000); // show splash for 2s
-    return () => clearTimeout(timer);
-  }, []);
 
   const renderHomePage = () => (
     <div className="home-container">
@@ -59,7 +51,7 @@ function App() {
         </button>
       </div>
 
-      {/* Auth Form */}
+      {/* Auth Form with fade animation */}
       <div className="auth-form-container" key={authTab}>
         {authTab === "login" ? <Login /> : <SignUp />}
       </div>
@@ -95,19 +87,11 @@ function App() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="splash-screen">
-        <img src={SCLogo2} alt="Loading..." className="splash-logo" />
-      </div>
-    );
-  }
-
   return (
     <div>
       {/* Header */}
       <header className="app-header">
-        <img src={SCLogo3} alt="SafeConnect Logo" className="header-logo" />
+        <h1>SafeConnect Naija</h1>
       </header>
 
       {/* Main Content */}
