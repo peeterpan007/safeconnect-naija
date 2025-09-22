@@ -17,7 +17,7 @@ import NewsUpdate from "./components/NewsUpdate";
 import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
 
 import logo from "./assets/Connect4.jpg";
-import SCLogo2 from "./assets/SCLogo2.png"; // ✅ Import splash logo
+import SCLogo2 from "./assets/SCLogo2.png"; // splash logo
 import "./App.css";
 
 import Login from "./components/Login";
@@ -33,8 +33,8 @@ function App() {
 
   // Splash screen timing
   useEffect(() => {
-    const timer = setTimeout(() => setFadeOut(true), 1800); // start fade-out
-    const timer2 = setTimeout(() => setLoading(false), 2200); // remove splash
+    const timer = setTimeout(() => setFadeOut(true), 2500); // start fade-out after 2.5s
+    const timer2 = setTimeout(() => setLoading(false), 3000); // remove splash after 3s
     return () => {
       clearTimeout(timer);
       clearTimeout(timer2);
