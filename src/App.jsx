@@ -17,8 +17,8 @@ import NewsUpdate from "./components/NewsUpdate";
 import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
 
 import logo from "./assets/Connect4.jpg";
-import SCLogo2 from "./assets/SCLogo2.png"; // splash logo
-import SCLogo3 from "./assets/SCLogo3.png"; // header logo
+import SCLogo2 from "./assets/SCLogo2.png"; // splash screen
+import SCLogo3 from "./assets/SCLogo3.png"; // header
 import "./App.css";
 
 import Login from "./components/Login";
@@ -30,15 +30,10 @@ function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [authTab, setAuthTab] = useState("login");
   const [loading, setLoading] = useState(true);
-  const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setFadeOut(true), 2000); // fade splash
-    const hideTimer = setTimeout(() => setLoading(false), 2500); // remove splash
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(hideTimer);
-    };
+    const timer = setTimeout(() => setLoading(false), 2000); // show splash for 2s
+    return () => clearTimeout(timer);
   }, []);
 
   const renderHomePage = () => (
@@ -102,17 +97,17 @@ function App() {
 
   if (loading) {
     return (
-      <div className={`splash-screen ${fadeOut ? "fade-out" : ""}`}>
-        <img src={SCLogo2} alt="Loading Logo" className="splash-logo" />
+      <div className="splash-screen">
+        <img src={SCLogo2} alt="Loading..." className="splash-logo" />
       </div>
     );
   }
 
   return (
-    <div className="app-container fade-in">
+    <div>
       {/* Header */}
       <header className="app-header">
-        <img src={SCLogo3} alt="App Logo" className="header-logo" />
+        <img src={SCLogo3} alt="SafeConnect Logo" className="header-logo" />
       </header>
 
       {/* Main Content */}
