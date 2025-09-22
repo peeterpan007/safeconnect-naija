@@ -6,7 +6,7 @@ body {
 
 /* Header */
 .app-header {
-  background-color: #311eff;
+  background-color: #006400; /* Dark green */
   padding: 20px;
   color: #fff;
   display: flex;
@@ -60,59 +60,30 @@ body {
 }
 
 @keyframes flash {
-  0% {
-    opacity: 0;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 @keyframes smooth-bounce {
-  0% {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+  0% { transform: scale(0.95); opacity: 0; }
+  50% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 @keyframes zoomOutFade {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(0.95);
-    opacity: 0;
-  }
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0; }
 }
 
 /* Home Page Fade-in */
-.fade-hidden {
-  opacity: 0;
-}
+.fade-hidden { opacity: 0; }
 
-.fade-in {
-  animation: homeFadeIn 0.5s ease forwards;
-}
+.fade-in { animation: homeFadeIn 0.5s ease forwards; }
 
 @keyframes homeFadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Home Page */
@@ -154,13 +125,13 @@ body {
 }
 
 .tab-button.active-tab {
-  background-color: #311eff;
+  background-color: #006400; /* Dark green */
   color: #fff;
   font-weight: bold;
 }
 
 .tab-button:hover {
-  background-color: #5a44ff;
+  background-color: #228B22; /* Slightly lighter green on hover */
   color: #fff;
 }
 
@@ -174,10 +145,7 @@ body {
 }
 
 @keyframes fadeIn {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Map Container */
@@ -200,7 +168,7 @@ body {
   width: 100%;
   display: flex;
   justify-content: space-around;
-  background-color: #311eff;
+  background-color: #006400; /* Dark green */
   color: #fff;
   padding: 10px 0;
   z-index: 100;

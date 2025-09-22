@@ -65,7 +65,7 @@ function CommunityConnect({ user }) {
         style={{
           width: "100%",
           padding: "10px",
-          backgroundColor: "#0a27e9",
+          backgroundColor: "#006400",
           color: "#fff",
           fontWeight: "bold",
           border: "none",

@@ -294,7 +294,7 @@ function IncidentReports({ user }) {
         ))}
       </select>
 
-      <button onClick={addIncident} style={{ width: "100%", padding: "10px", backgroundColor: "#0c0ab1", color: "#fff", fontWeight: "bold", border: "none", borderRadius: "5px" }}>
+      <button onClick={addIncident} style={{ width: "100%", padding: "10px", backgroundColor: "#006400", color: "#fff", fontWeight: "bold", border: "none", borderRadius: "5px" }}>
         Add Incident
       </button>
     </div>

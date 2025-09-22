@@ -80,7 +80,7 @@ function Ads({ user }) {
         style={{
           width: "100%",
           padding: "10px",
-          backgroundColor: "#1e53ff",
+          backgroundColor: "#006400",
           color: "#fff",
           fontWeight: "bold",
           border: "none",

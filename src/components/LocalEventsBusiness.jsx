@@ -95,7 +95,7 @@ function LocalEventsAndBusiness({ user }) {
         style={{
           width: "100%",
           padding: "10px",
-          backgroundColor: "#0816b3",
+          backgroundColor: "#006400",
           color: "#fff",
           fontWeight: "bold",
           border: "none",
