@@ -26,20 +26,41 @@ import SignUp from "./components/SignUp";
 
 const user = { id: "1", area: "NY", interests: ["security", "home services"] };
 
+// Splash Component
+function Splash({ onFinish }) {
+  const [fadeOut, setFadeOut] = useState(false);
+
+  useEffect(() => {
+    // Start splash fade
+    const timer = setTimeout(() => setFadeOut(true), 2500);
+    const timer2 = setTimeout(onFinish, 3000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(timer2);
+    };
+  }, [onFinish]);
+
+  return (
+    <div className={`loading-screen ${fadeOut ? "fade-out" : ""}`}>
+      <img src={SCLogo2} alt="Loading Logo" className="loading-logo" />
+    </div>
+  );
+}
+
 function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [authTab, setAuthTab] = useState("login");
   const [loading, setLoading] = useState(true);
-  const [fadeOut, setFadeOut] = useState(false);
 
-  // Splash screen timing and sound
+  // Play startup sound immediately
   useEffect(() => {
     const audio = new Audio(startupSound);
     audio.volume = 1;
 
     // Try to play immediately (mobile apps)
     audio.play().catch(() => {
-      // If blocked (web), play on first user interaction
+      // Web fallback: play on first user interaction
       const handleInteraction = () => {
         audio.play().catch((err) => console.log("Playback failed:", err));
         window.removeEventListener("click", handleInteraction);
@@ -48,15 +69,6 @@ function App() {
       window.addEventListener("click", handleInteraction);
       window.addEventListener("keydown", handleInteraction);
     });
-
-    // Splash fade timing
-    const timer = setTimeout(() => setFadeOut(true), 2500); // start fade
-    const timer2 = setTimeout(() => setLoading(false), 3000); // remove splash
-
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(timer2);
-    };
   }, []);
 
   const renderHomePage = () => (
@@ -82,7 +94,6 @@ function App() {
         </button>
       </div>
 
-      {/* Auth Form */}
       <div className="auth-form-container" key={authTab}>
         {authTab === "login" ? <Login /> : <SignUp />}
       </div>
@@ -118,13 +129,9 @@ function App() {
     }
   };
 
-  // Splash screen
+  // Show splash while loading
   if (loading) {
-    return (
-      <div className={`loading-screen ${fadeOut ? "fade-out" : ""}`}>
-        <img src={SCLogo2} alt="Loading Logo" className="loading-logo" />
-      </div>
-    );
+    return <Splash onFinish={() => setLoading(false)} />;
   }
 
   return (
