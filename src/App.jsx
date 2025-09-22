@@ -29,16 +29,15 @@ const user = { id: "1", area: "NY", interests: ["security", "home services"] };
 // Splash component
 function Splash({ onFinish }) {
   const [fadeOut, setFadeOut] = useState(false);
+  const [flash, setFlash] = useState(false);
 
   useEffect(() => {
     const audio = new Audio(startupSoundFile);
     audio.volume = 1;
 
-    // Play sound immediately
     audio.play().catch(() => {
-      // fallback for autoplay restrictions
       const handleInteraction = () => {
-        audio.play().catch((err) => console.log("Playback failed:", err));
+        audio.play().catch(() => {});
         window.removeEventListener("click", handleInteraction);
         window.removeEventListener("keydown", handleInteraction);
       };
@@ -47,12 +46,16 @@ function Splash({ onFinish }) {
     });
 
     audio.addEventListener("loadedmetadata", () => {
-      const duration = audio.duration * 1000; // in ms
-      const fadeTime = 100; // start fade 100ms before end
+      const duration = audio.duration * 1000;
+      const flashTime = duration * 0.8; // trigger flash near end
+      const fadeTime = 100; // fade 100ms before end
+
+      const flashTimer = setTimeout(() => setFlash(true), flashTime);
       const fadeTimer = setTimeout(() => setFadeOut(true), duration - fadeTime);
       const finishTimer = setTimeout(onFinish, duration);
 
       return () => {
+        clearTimeout(flashTimer);
         clearTimeout(fadeTimer);
         clearTimeout(finishTimer);
       };
@@ -66,6 +69,7 @@ function Splash({ onFinish }) {
         alt="Loading Logo"
         className={`loading-logo ${fadeOut ? "zoom-out" : ""}`}
       />
+      {flash && <div className="flash-overlay" />}
     </div>
   );
 }
@@ -76,7 +80,7 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   const renderHomePage = () => (
-    <div className="home-container">
+    <div className={`home-container ${loading ? "fade-hidden" : "fade-in"}`}>
       <img src={logo} alt="SafeConnect Logo" className="home-logo" />
       <p className="home-description">
         Building safer, stronger communities across Nigeria
