@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaHome,
   FaMapMarkerAlt,
@@ -17,6 +17,8 @@ import NewsUpdate from "./components/NewsUpdate";
 import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
 
 import logo from "./assets/Connect4.jpg";
+import SCLogo2 from "./assets/SCLogo2.png"; // splash screen logo
+import SCLogo3 from "./assets/SCLogo3.png"; // header logo
 import "./App.css";
 
 import Login from "./components/Login";
@@ -27,6 +29,21 @@ const user = { id: "1", area: "NY", interests: ["security", "home services"] };
 function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [authTab, setAuthTab] = useState("login");
+  const [loading, setLoading] = useState(true);
+
+  // Splash screen timer
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="splash-screen">
+        <img src={SCLogo2} alt="Loading Logo" className="splash-logo" />
+      </div>
+    );
+  }
 
   const renderHomePage = () => (
     <div className="home-container">
@@ -89,9 +106,9 @@ function App() {
 
   return (
     <div>
-      {/* Header */}
+      {/* ✅ Header logo instead of text */}
       <header className="app-header">
-        <h1>SafeConnect Naija</h1>
+        <img src={SCLogo3} alt="App Header Logo" className="header-logo" />
       </header>
 
       {/* Main Content */}
