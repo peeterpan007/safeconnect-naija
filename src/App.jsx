@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   FaHome,
   FaMapMarkerAlt,
@@ -32,19 +32,57 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
 
-  // Splash screen timing and sound
+  const audioRef = useRef(null);
+
   useEffect(() => {
-    // Play startup sound
+    // Initialize audio
     const audio = new Audio(startupSound);
+    audio.volume = 0; // start silent
+    audioRef.current = audio;
+
+    // Gradually increase volume (fade-in)
+    let volume = 0;
+    const fadeInInterval = setInterval(() => {
+      if (audioRef.current) {
+        volume += 0.02;
+        if (volume >= 1) {
+          volume = 1;
+          clearInterval(fadeInInterval);
+        }
+        audioRef.current.volume = volume;
+      }
+    }, 50); // fade-in over ~2.5s
+
     audio.play().catch((err) => {
       console.log("Audio playback failed:", err);
     });
 
+    // Splash timing
     const timer = setTimeout(() => setFadeOut(true), 2500); // fade splash
-    const timer2 = setTimeout(() => setLoading(false), 3000); // hide splash
+    const timer2 = setTimeout(() => setLoading(false), 3000); // remove splash
+
+    // Fade-out audio as splash disappears
+    const fadeOutAudio = setTimeout(() => {
+      if (audioRef.current) {
+        let currentVol = audioRef.current.volume;
+        const fadeInterval = setInterval(() => {
+          currentVol -= 0.02;
+          if (currentVol <= 0) {
+            currentVol = 0;
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+            clearInterval(fadeInterval);
+          }
+          audioRef.current.volume = currentVol;
+        }, 50);
+      }
+    }, 2500); // start fade-out with splash
+
     return () => {
       clearTimeout(timer);
       clearTimeout(timer2);
+      clearTimeout(fadeOutAudio);
+      clearInterval(fadeInInterval);
     };
   }, []);
 
