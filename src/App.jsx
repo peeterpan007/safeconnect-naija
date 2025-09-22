@@ -18,6 +18,7 @@ import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
 
 import logo from "./assets/Connect4.jpg";
 import SCLogo2 from "./assets/SCLogo2.png"; // splash logo
+import startupSound from "./assets/startup.mp3"; // startup sound
 import "./App.css";
 
 import Login from "./components/Login";
@@ -31,10 +32,16 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
 
-  // Splash screen timing
+  // Splash screen timing and sound
   useEffect(() => {
-    const timer = setTimeout(() => setFadeOut(true), 2500); // start fade-out after 2.5s
-    const timer2 = setTimeout(() => setLoading(false), 3000); // remove splash after 3s
+    // Play startup sound
+    const audio = new Audio(startupSound);
+    audio.play().catch((err) => {
+      console.log("Audio playback failed:", err);
+    });
+
+    const timer = setTimeout(() => setFadeOut(true), 2500); // fade splash
+    const timer2 = setTimeout(() => setLoading(false), 3000); // hide splash
     return () => {
       clearTimeout(timer);
       clearTimeout(timer2);
@@ -100,7 +107,7 @@ function App() {
     }
   };
 
-  // Splash screen with bounce and fade
+  // Splash screen with sound, bounce, fade
   if (loading) {
     return (
       <div className={`loading-screen ${fadeOut ? "fade-out" : ""}`}>
