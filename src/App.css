@@ -40,7 +40,7 @@ body {
 
 .loading-logo {
   width: 70%;   /* Reduced size so the whole logo fits */
-  height: 70%;
+  height: 90%;
   object-fit: contain; /* maintain aspect ratio */
   animation: smooth-bounce 0.07s ease-out forwards;
 }
