@@ -17,7 +17,7 @@ import NewsUpdate from "./components/NewsUpdate";
 import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
 
 import logo from "./assets/Connect4.jpg";
-import SCLogo2 from "./assets/SCLogo2.png"; // splash screen logo
+import SCLogo2 from "./assets/SCLogo2.png"; // splash logo
 import SCLogo3 from "./assets/SCLogo3.png"; // header logo
 import "./App.css";
 
@@ -30,20 +30,16 @@ function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [authTab, setAuthTab] = useState("login");
   const [loading, setLoading] = useState(true);
+  const [fadeOut, setFadeOut] = useState(false);
 
-  // Splash screen timer
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 2500);
-    return () => clearTimeout(timer);
+    const timer = setTimeout(() => setFadeOut(true), 2000); // fade splash
+    const hideTimer = setTimeout(() => setLoading(false), 2500); // remove splash
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(hideTimer);
+    };
   }, []);
-
-  if (loading) {
-    return (
-      <div className="splash-screen">
-        <img src={SCLogo2} alt="Loading Logo" className="splash-logo" />
-      </div>
-    );
-  }
 
   const renderHomePage = () => (
     <div className="home-container">
@@ -68,7 +64,7 @@ function App() {
         </button>
       </div>
 
-      {/* Auth Form with fade animation */}
+      {/* Auth Form */}
       <div className="auth-form-container" key={authTab}>
         {authTab === "login" ? <Login /> : <SignUp />}
       </div>
@@ -104,11 +100,19 @@ function App() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className={`splash-screen ${fadeOut ? "fade-out" : ""}`}>
+        <img src={SCLogo2} alt="Loading Logo" className="splash-logo" />
+      </div>
+    );
+  }
+
   return (
-    <div>
-      {/* ✅ Header logo instead of text */}
+    <div className="app-container fade-in">
+      {/* Header */}
       <header className="app-header">
-        <img src={SCLogo3} alt="App Header Logo" className="header-logo" />
+        <img src={SCLogo3} alt="App Logo" className="header-logo" />
       </header>
 
       {/* Main Content */}

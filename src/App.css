@@ -1,28 +1,189 @@
+/* General Styles */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
 /* Splash Screen */
 .splash-screen {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #fff;
+  background: #fff;
+  transition: opacity 0.5s ease;
+}
+
+.splash-screen.fade-out {
+  opacity: 0;
 }
 
 .splash-logo {
-  max-width: 200px;
-  height: auto;
+  width: 220px;
+  max-width: 70%;
 }
 
-/* Header with rectangular logo */
+/* Header */
 .app-header {
-  background-color: #fff; /* white header */
-  padding: 10px;
+  background-color: #fff;
+  padding: 15px 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-bottom: 1px solid #eee;
+  border-bottom: 2px solid #eee;
 }
 
 .header-logo {
-  height: 50px;
+  height: 55px; /* same size as old header text */
+  max-width: 90%;
   object-fit: contain;
+}
+
+/* Main App Fade-In */
+.app-container.fade-in {
+  animation: fadeInApp 0.8s ease forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInApp {
+  to {
+    opacity: 1;
+  }
+}
+
+.main-content {
+  padding: 0 10px 80px;
+}
+
+/* Home Page */
+.home-container {
+  text-align: center;
+  padding: 20px;
+}
+
+.home-logo {
+  height: 250px;
+  border-radius: 22px;
+  margin-bottom: 30px;
+}
+
+.home-description {
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+
+/* Auth Tabs */
+.auth-tabs {
+  display: flex;
+  justify-content: center;
+  width: fit-content;
+  margin: 0 auto 25px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.tab-button {
+  padding: 10px 30px;
+  border: none;
+  cursor: pointer;
+  background-color: #f0f0f0;
+  color: #333;
+  font-weight: normal;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.tab-button.active-tab {
+  background-color: #311eff;
+  color: #fff;
+  font-weight: bold;
+}
+
+.tab-button:hover {
+  background-color: #5a44ff;
+  color: #fff;
+}
+
+/* Auth Form */
+.auth-form-container {
+  max-width: 400px;
+  margin: 0 auto;
+  opacity: 0;
+  transform: translateY(-10px);
+  animation: fadeIn 0.3s forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-form input {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: #311eff;
+  box-shadow: 0 0 5px rgba(49, 30, 255, 0.5);
+}
+
+.auth-form button {
+  padding: 12px;
+  background-color: #311eff;
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.auth-form button:hover {
+  background-color: #5a44ff;
+}
+
+/* Map Container */
+.map-container {
+  height: calc(100vh - 80px - 60px);
+}
+
+/* Events Container */
+.events-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 10px 0;
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  background-color: #311eff;
+  color: #fff;
+  padding: 10px 0;
+  z-index: 100;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  cursor: pointer;
 }
