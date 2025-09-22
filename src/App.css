@@ -4,40 +4,14 @@ body {
   font-family: Arial, sans-serif;
 }
 
-/* Splash Screen */
-.splash-screen {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;   /* full height */
-  width: 100vw;    /* full width */
-  background-color: #fff;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 2000;
-}
-
-.splash-logo {
-  width: 250px;
-  max-width: 80%;
-  height: auto;
-}
-
 /* Header */
 .app-header {
-  background-color: #fff;
-  padding: 15px 0;
+  background-color: #311eff;
+  padding: 20px;
+  color: #fff;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-bottom: 2px solid #eee;
-}
-
-.header-logo {
-  height: 55px; /* adjust to match old header size */
-  max-width: 90%;
-  object-fit: contain;
 }
 
 .main-content {
@@ -176,3 +150,4 @@ body {
   color: #fff;
   cursor: pointer;
 }
+
