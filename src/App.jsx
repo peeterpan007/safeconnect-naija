@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaHome,
   FaMapMarkerAlt,
@@ -17,6 +17,7 @@ import NewsUpdate from "./components/NewsUpdate";
 import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
 
 import logo from "./assets/Connect4.jpg";
+import SCLogo2 from "./assets/SCLogo2.png"; // ✅ Import splash logo
 import "./App.css";
 
 import Login from "./components/Login";
@@ -27,6 +28,18 @@ const user = { id: "1", area: "NY", interests: ["security", "home services"] };
 function App() {
   const [activeTab, setActiveTab] = useState("home");
   const [authTab, setAuthTab] = useState("login");
+  const [loading, setLoading] = useState(true);
+  const [fadeOut, setFadeOut] = useState(false);
+
+  // Splash screen timing
+  useEffect(() => {
+    const timer = setTimeout(() => setFadeOut(true), 1800); // start fade-out
+    const timer2 = setTimeout(() => setLoading(false), 2200); // remove splash
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(timer2);
+    };
+  }, []);
 
   const renderHomePage = () => (
     <div className="home-container">
@@ -51,7 +64,7 @@ function App() {
         </button>
       </div>
 
-      {/* Auth Form with fade animation */}
+      {/* Auth Form */}
       <div className="auth-form-container" key={authTab}>
         {authTab === "login" ? <Login /> : <SignUp />}
       </div>
@@ -87,17 +100,24 @@ function App() {
     }
   };
 
+  // Splash screen with bounce and fade
+  if (loading) {
+    return (
+      <div className={`loading-screen ${fadeOut ? "fade-out" : ""}`}>
+        <img src={SCLogo2} alt="Loading Logo" className="loading-logo" />
+      </div>
+    );
+  }
+
+  // Main App content
   return (
     <div>
-      {/* Header */}
       <header className="app-header">
         <h1>SafeConnect Naija</h1>
       </header>
 
-      {/* Main Content */}
       <div className="main-content">{renderTabContent()}</div>
 
-      {/* Bottom Navigation */}
       <nav className="bottom-nav">
         <button onClick={() => setActiveTab("home")} className="nav-btn">
           <FaHome size={24} />
