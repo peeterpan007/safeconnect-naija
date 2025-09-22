@@ -17,8 +17,8 @@ import NewsUpdate from "./components/NewsUpdate";
 import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
 
 import logo from "./assets/Connect4.jpg";
-import SCLogo2 from "./assets/SCLogo2.png"; // splash logo
-import startupSound from "./assets/startup.mp3"; // startup sound
+import SCLogo2 from "./assets/SCLogo2.png";
+import startupSoundFile from "./assets/startup.mp3";
 import "./App.css";
 
 import Login from "./components/Login";
@@ -26,19 +26,40 @@ import SignUp from "./components/SignUp";
 
 const user = { id: "1", area: "NY", interests: ["security", "home services"] };
 
-// Splash Component
+// Splash component
 function Splash({ onFinish }) {
   const [fadeOut, setFadeOut] = useState(false);
 
   useEffect(() => {
-    // Start splash fade
-    const timer = setTimeout(() => setFadeOut(true), 2500);
-    const timer2 = setTimeout(onFinish, 3000);
+    const audio = new Audio(startupSoundFile);
+    audio.volume = 1;
 
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(timer2);
-    };
+    // Play sound immediately
+    audio.play().catch(() => {
+      // Web fallback for autoplay restrictions
+      const handleInteraction = () => {
+        audio.play().catch((err) => console.log("Playback failed:", err));
+        window.removeEventListener("click", handleInteraction);
+        window.removeEventListener("keydown", handleInteraction);
+      };
+      window.addEventListener("click", handleInteraction);
+      window.addEventListener("keydown", handleInteraction);
+    });
+
+    // Wait until metadata loads to get duration
+    audio.addEventListener("loadedmetadata", () => {
+      const duration = audio.duration * 1000; // ms
+
+      // Fade out a little before the sound ends
+      const fadeTime = 100; // fade 100ms before end
+      const fadeTimer = setTimeout(() => setFadeOut(true), duration - fadeTime);
+      const finishTimer = setTimeout(onFinish, duration);
+
+      return () => {
+        clearTimeout(fadeTimer);
+        clearTimeout(finishTimer);
+      };
+    });
   }, [onFinish]);
 
   return (
@@ -53,24 +74,6 @@ function App() {
   const [authTab, setAuthTab] = useState("login");
   const [loading, setLoading] = useState(true);
 
-  // Play startup sound immediately
-  useEffect(() => {
-    const audio = new Audio(startupSound);
-    audio.volume = 1;
-
-    // Try to play immediately (mobile apps)
-    audio.play().catch(() => {
-      // Web fallback: play on first user interaction
-      const handleInteraction = () => {
-        audio.play().catch((err) => console.log("Playback failed:", err));
-        window.removeEventListener("click", handleInteraction);
-        window.removeEventListener("keydown", handleInteraction);
-      };
-      window.addEventListener("click", handleInteraction);
-      window.addEventListener("keydown", handleInteraction);
-    });
-  }, []);
-
   const renderHomePage = () => (
     <div className="home-container">
       <img src={logo} alt="SafeConnect Logo" className="home-logo" />
@@ -78,7 +81,6 @@ function App() {
         Building safer, stronger communities across Nigeria
       </p>
 
-      {/* Auth Tabs */}
       <div className="auth-tabs">
         <button
           onClick={() => setAuthTab("login")}
@@ -129,7 +131,6 @@ function App() {
     }
   };
 
-  // Show splash while loading
   if (loading) {
     return <Splash onFinish={() => setLoading(false)} />;
   }

@@ -18,6 +18,47 @@ body {
   padding: 0 10px 80px;
 }
 
+/* Splash Screen */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #006400; /* Dark green background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 1;
+  transition: opacity 0.1s ease-out;
+}
+
+.loading-screen.fade-out {
+  opacity: 0;
+}
+
+.loading-logo {
+  width: 180px;
+  height: 180px;
+  animation: smooth-bounce 0.07s ease-out forwards;
+}
+
+@keyframes smooth-bounce {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 /* Home Page */
 .home-container {
   text-align: center;
@@ -83,41 +124,6 @@ body {
   }
 }
 
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.auth-form input {
-  padding: 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  font-size: 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.auth-form input:focus {
-  outline: none;
-  border-color: #311eff;
-  box-shadow: 0 0 5px rgba(49, 30, 255, 0.5);
-}
-
-.auth-form button {
-  padding: 12px;
-  background-color: #311eff;
-  color: #fff;
-  font-weight: bold;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.auth-form button:hover {
-  background-color: #5a44ff;
-}
-
 /* Map Container */
 .map-container {
   height: calc(100vh - 80px - 60px);
@@ -149,62 +155,4 @@ body {
   border: none;
   color: #fff;
   cursor: pointer;
-}
-
-/* -------------------- */
-/* Splash Loading Screen */
-/* -------------------- */
-.loading-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  /* Dark green radial gradient background */
-  background: radial-gradient(circle at center, #1a5d1a 0%, #0b3d0b 100%);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  animation: bounceIn 2.2s ease forwards; /* professional timing */
-}
-
-.loading-logo {
-  max-width: 60%;
-  max-height: 60%;
-  object-fit: contain;
-  /* subtle shadow to lift logo */
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-}
-
-/* Bounce animation for splash */
-@keyframes bounceIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.5);
-  }
-  40% {
-    opacity: 1;
-    transform: scale(1.1);
-  }
-  70% {
-    transform: scale(0.95);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* Fade-out effect for splash */
-.loading-screen.fade-out {
-  animation: fadeOut 0.6s forwards;
-}
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
 }
