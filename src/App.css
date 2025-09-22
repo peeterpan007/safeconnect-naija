@@ -2,6 +2,7 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
+  background: #fff;
 }
 
 /* Splash Screen */
@@ -9,9 +10,14 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  height: 100vh;   /* full screen height */
+  width: 100vw;    /* full screen width */
   background: #fff;
   transition: opacity 0.5s ease;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2000; /* always above */
 }
 
 .splash-screen.fade-out {
@@ -19,8 +25,9 @@ body {
 }
 
 .splash-logo {
-  width: 220px;
-  max-width: 70%;
+  width: 250px;
+  max-width: 80%;
+  height: auto;
 }
 
 /* Header */
@@ -155,9 +162,10 @@ body {
   background-color: #5a44ff;
 }
 
-/* Map Container */
+/* Map Container - FIXED to original size */
 .map-container {
-  height: calc(100vh - 80px - 60px);
+  height: calc(100vh - 55px - 60px); /* header height (55px) + bottom nav (60px) */
+  width: 100%;
 }
 
 /* Events Container */
