@@ -30,69 +30,32 @@ body {
   justify-content: center;
   align-items: center;
   z-index: 9999;
-  opacity: 1;
-  transition: opacity 0.1s ease-out;
-}
-
-.loading-screen.fade-out {
-  opacity: 0;
+  overflow: hidden;
 }
 
 .loading-logo {
   width: 70%;
   height: 70%;
   object-fit: contain;
-  animation: smooth-bounce 0.07s ease-out forwards;
+  transition: transform 0.07s ease-out;
 }
 
-.loading-logo.zoom-out {
-  animation: zoomOutFade 0.1s ease forwards;
+/* Wrap/Compress effect - longer duration */
+.loading-screen.wrap-up .loading-logo {
+  animation: wrapCompress 0.7s forwards; /* 0.7s for smooth cinematic effect */
 }
 
-.flash-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.4);
-  animation: flash 0.15s ease-in-out forwards;
-}
-
-@keyframes flash {
+@keyframes wrapCompress {
   0% {
-    opacity: 0;
+    transform: scale(1) translateY(0);
+    opacity: 1;
   }
   50% {
+    transform: scaleY(0.15) scaleX(1.05) translateY(-50%);
     opacity: 1;
   }
   100% {
-    opacity: 0;
-  }
-}
-
-@keyframes smooth-bounce {
-  0% {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes zoomOutFade {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(0.95);
+    transform: scaleY(0) scaleX(1) translateY(-100%);
     opacity: 0;
   }
 }

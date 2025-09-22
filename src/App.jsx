@@ -26,10 +26,8 @@ import SignUp from "./components/SignUp";
 
 const user = { id: "1", area: "NY", interests: ["security", "home services"] };
 
-// Splash component
 function Splash({ onFinish }) {
-  const [fadeOut, setFadeOut] = useState(false);
-  const [flash, setFlash] = useState(false);
+  const [wrap, setWrap] = useState(false);
 
   useEffect(() => {
     const audio = new Audio(startupSoundFile);
@@ -46,30 +44,25 @@ function Splash({ onFinish }) {
     });
 
     audio.addEventListener("loadedmetadata", () => {
-      const duration = audio.duration * 1000;
-      const flashTime = duration * 0.8; // trigger flash near end
-      const fadeTime = 100; // fade 100ms before end
-
-      const flashTimer = setTimeout(() => setFlash(true), flashTime);
-      const fadeTimer = setTimeout(() => setFadeOut(true), duration - fadeTime);
+      const duration = audio.duration * 1000; // total sound duration in ms
+      const wrapStart = duration * 0.2; // start wrap 20% into sound
+      const wrapTimer = setTimeout(() => setWrap(true), wrapStart);
       const finishTimer = setTimeout(onFinish, duration);
 
       return () => {
-        clearTimeout(flashTimer);
-        clearTimeout(fadeTimer);
+        clearTimeout(wrapTimer);
         clearTimeout(finishTimer);
       };
     });
   }, [onFinish]);
 
   return (
-    <div className={`loading-screen ${fadeOut ? "fade-out" : ""}`}>
+    <div className={`loading-screen ${wrap ? "wrap-up" : ""}`}>
       <img
         src={SCLogo2}
         alt="Loading Logo"
-        className={`loading-logo ${fadeOut ? "zoom-out" : ""}`}
+        className="loading-logo"
       />
-      {flash && <div className="flash-overlay" />}
     </div>
   );
 }
