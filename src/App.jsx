@@ -36,7 +36,7 @@ function Splash({ onFinish }) {
 
     // Play sound immediately
     audio.play().catch(() => {
-      // Web fallback for autoplay restrictions
+      // fallback for autoplay restrictions
       const handleInteraction = () => {
         audio.play().catch((err) => console.log("Playback failed:", err));
         window.removeEventListener("click", handleInteraction);
@@ -46,12 +46,9 @@ function Splash({ onFinish }) {
       window.addEventListener("keydown", handleInteraction);
     });
 
-    // Wait until metadata loads to get duration
     audio.addEventListener("loadedmetadata", () => {
-      const duration = audio.duration * 1000; // ms
-
-      // Fade out a little before the sound ends
-      const fadeTime = 100; // fade 100ms before end
+      const duration = audio.duration * 1000; // in ms
+      const fadeTime = 100; // start fade 100ms before end
       const fadeTimer = setTimeout(() => setFadeOut(true), duration - fadeTime);
       const finishTimer = setTimeout(onFinish, duration);
 
@@ -64,7 +61,11 @@ function Splash({ onFinish }) {
 
   return (
     <div className={`loading-screen ${fadeOut ? "fade-out" : ""}`}>
-      <img src={SCLogo2} alt="Loading Logo" className="loading-logo" />
+      <img
+        src={SCLogo2}
+        alt="Loading Logo"
+        className={`loading-logo ${fadeOut ? "zoom-out" : ""}`}
+      />
     </div>
   );
 }
