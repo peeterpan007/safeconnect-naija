@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaHome,
   FaMapMarkerAlt,
@@ -32,57 +32,30 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
 
-  const audioRef = useRef(null);
-
+  // Splash screen timing and sound
   useEffect(() => {
-    // Initialize audio
     const audio = new Audio(startupSound);
-    audio.volume = 0; // start silent
-    audioRef.current = audio;
+    audio.volume = 1;
 
-    // Gradually increase volume (fade-in)
-    let volume = 0;
-    const fadeInInterval = setInterval(() => {
-      if (audioRef.current) {
-        volume += 0.02;
-        if (volume >= 1) {
-          volume = 1;
-          clearInterval(fadeInInterval);
-        }
-        audioRef.current.volume = volume;
-      }
-    }, 50); // fade-in over ~2.5s
-
-    audio.play().catch((err) => {
-      console.log("Audio playback failed:", err);
+    // Try to play immediately (mobile apps)
+    audio.play().catch(() => {
+      // If blocked (web), play on first user interaction
+      const handleInteraction = () => {
+        audio.play().catch((err) => console.log("Playback failed:", err));
+        window.removeEventListener("click", handleInteraction);
+        window.removeEventListener("keydown", handleInteraction);
+      };
+      window.addEventListener("click", handleInteraction);
+      window.addEventListener("keydown", handleInteraction);
     });
 
-    // Splash timing
-    const timer = setTimeout(() => setFadeOut(true), 2500); // fade splash
+    // Splash fade timing
+    const timer = setTimeout(() => setFadeOut(true), 2500); // start fade
     const timer2 = setTimeout(() => setLoading(false), 3000); // remove splash
-
-    // Fade-out audio as splash disappears
-    const fadeOutAudio = setTimeout(() => {
-      if (audioRef.current) {
-        let currentVol = audioRef.current.volume;
-        const fadeInterval = setInterval(() => {
-          currentVol -= 0.02;
-          if (currentVol <= 0) {
-            currentVol = 0;
-            audioRef.current.pause();
-            audioRef.current.currentTime = 0;
-            clearInterval(fadeInterval);
-          }
-          audioRef.current.volume = currentVol;
-        }, 50);
-      }
-    }, 2500); // start fade-out with splash
 
     return () => {
       clearTimeout(timer);
       clearTimeout(timer2);
-      clearTimeout(fadeOutAudio);
-      clearInterval(fadeInInterval);
     };
   }, []);
 
@@ -145,7 +118,7 @@ function App() {
     }
   };
 
-  // Splash screen with sound, bounce, fade
+  // Splash screen
   if (loading) {
     return (
       <div className={`loading-screen ${fadeOut ? "fade-out" : ""}`}>
@@ -154,7 +127,6 @@ function App() {
     );
   }
 
-  // Main App content
   return (
     <div>
       <header className="app-header">
