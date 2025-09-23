@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { auth, googleProvider, facebookProvider } from "../firebase";
+import { signInWithPopup } from "firebase/auth";
 
 function SignUp({ onSignUp }) {
   const [name, setName] = useState("");
@@ -11,6 +13,26 @@ function SignUp({ onSignUp }) {
       onSignUp?.({ name, email });
     } else {
       alert("Please fill in all fields");
+    }
+  };
+
+  const handleGoogleSignUp = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      console.log("Google user:", result.user);
+      onSignUp?.({ name: result.user.displayName, email: result.user.email });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleFacebookSignUp = async () => {
+    try {
+      const result = await signInWithPopup(auth, facebookProvider);
+      console.log("Facebook user:", result.user);
+      onSignUp?.({ name: result.user.displayName, email: result.user.email });
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -35,6 +57,16 @@ function SignUp({ onSignUp }) {
         onChange={(e) => setPassword(e.target.value)}
       />
       <button type="submit">Sign Up</button>
+
+      {/* Social sign up buttons */}
+      <div className="social-signup">
+        <button type="button" onClick={handleGoogleSignUp} className="google-btn">
+          Sign up with Google
+        </button>
+        <button type="button" onClick={handleFacebookSignUp} className="facebook-btn">
+          Sign up with Facebook
+        </button>
+      </div>
     </form>
   );
 }
