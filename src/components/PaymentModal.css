@@ -17,6 +17,7 @@
 
 .payment-content {
   background-color: #fff;
+  color: #000; /* ✅ Ensure readable text */
   border-radius: 10px;
   padding: 20px 25px;
   width: 350px;
@@ -33,11 +34,13 @@
   text-align: center;
   margin-bottom: 20px;
   font-size: 1.2rem;
+  color: #000; /* ✅ Force visibility */
 }
 
+/* --- CARD PREVIEW --- */
 .card-preview {
-  background-color: #1a1f71;
-  color: #fff;
+  background-color: #1a1f71; /* Navy */
+  color: #ffffff;            /* ✅ White text enforced */
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
@@ -46,33 +49,35 @@
   min-height: 120px;
 }
 
+.card-number,
+.card-name,
+.card-expiry,
+.card-cvc {
+  color: #ffffff !important; /* ✅ Make sure text shows on dark bg */
+}
+
 .card-number {
   font-size: 1.4rem;
   letter-spacing: 2px;
   margin-bottom: 10px;
 }
 
-.card-number span { margin-right: 1px; }
-
-.card-name,
-.card-expiry,
-.card-cvc { font-size: 0.9rem; text-transform: uppercase; }
-
 .card-name { margin-bottom: 5px; }
 
 .card-details { display: flex; justify-content: space-between; margin-top: 10px; }
 
 .card-expiry div:first-child,
-.card-cvc div:first-child { font-size: 0.7rem; color: #ccc; }
+.card-cvc div:first-child {
+  font-size: 0.7rem;
+  color: #ccc;
+}
 .card-expiry div:last-child,
-.card-cvc div:last-child { font-size: 0.9rem; }
+.card-cvc div:last-child {
+  font-size: 0.9rem;
+  color: #ffffff; /* ✅ force expiry/CVC visible */
+}
 
-.card-logo { transition: opacity 0.3s ease; opacity: 1; }
-.fade-in { opacity: 1; }
-.fade-out { opacity: 0; }
-
-.fade-digit { display: inline-block; transition: opacity 0.3s ease; }
-
+/* --- FORM INPUTS --- */
 .payment-form input {
   width: 100%;
   padding: 10px;
@@ -80,8 +85,17 @@
   border-radius: 6px;
   border: 1px solid #ccc;
   font-size: 0.95rem;
+  color: #000000; /* ✅ Force black text */
+  background-color: #ffffff; /* ✅ Prevent dark mode inversion */
 }
 
+/* Placeholder fix */
+.payment-form input::placeholder {
+  color: #666666;
+  opacity: 1;
+}
+
+/* --- BUTTONS --- */
 .payment-form button {
   width: 100%;
   padding: 12px;
@@ -91,78 +105,24 @@
   cursor: pointer;
   margin-top: 5px;
   background-color: #007bff;
-  color: #fff;
+  color: #ffffff; /* ✅ White on blue */
   transition: background-color 0.2s;
 }
 
 .payment-form button:hover:not(:disabled) { background-color: #0056b3; }
 .payment-form button:disabled { cursor: not-allowed; opacity: 0.5; }
 
-.payment-form .cancel-btn { background-color: #ccc; color: #333; margin-top: 10px; }
+.payment-form .cancel-btn {
+  background-color: #ccc;
+  color: #000; /* ✅ Black text for contrast */
+  margin-top: 10px;
+}
 .payment-form .cancel-btn:hover { background-color: #999; }
 
-.error { color: red; font-size: 0.8rem; margin-bottom: 5px; display: block; }
-
-/* Confirmation overlay */
-.confirmation-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  animation: fadeIn 0.3s forwards;
-  z-index: 10;
-}
-
-.checkmark {
-  font-size: 3rem;
-  color: #4BB543;
-  animation: pop 0.5s ease-out forwards;
-}
-
-.confirmation-text {
-  margin-top: 10px;
-  font-size: 1.2rem;
-  color: #fff;
-  font-weight: bold;
-}
-
-@keyframes pop {
-  0% { transform: scale(0.3); opacity: 0; }
-  50% { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(1); }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-/* Confetti */
-.confetti-container {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 15;
-}
-
-.confetti-piece {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  top: -10px;
-  transform: rotate(45deg);
-  animation: confettiFall 1.5s forwards;
-}
-
-.confetti-piece:nth-child(odd) { background-color: #4BB543; }
-.confetti-piece:nth-child(even) { background-color: #ff3b30; }
-
-@keyframes confettiFall {
-  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(200px) translateX(calc(-50px + 100px * var(--random))) rotate(360deg); opacity: 0; }
+/* --- ERRORS --- */
+.error {
+  color: red;
+  font-size: 0.8rem;
+  margin-bottom: 5px;
+  display: block;
 }
