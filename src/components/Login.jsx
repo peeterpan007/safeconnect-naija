@@ -1,21 +1,25 @@
 import React, { useState } from "react";
 import { auth, googleProvider, facebookProvider } from "../firebase";
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
 
 function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
+  // Handle Email/Password login
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email && password) {
-      // Replace with Firebase email/password sign-in if you want real auth
-      onLogin?.({ email });
-    } else {
-      alert("Please enter both email and password");
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      onLogin?.({ email: user.email, name: user.displayName || "User" });
+    } catch (error) {
+      console.error(error);
+      alert("Login failed. Please check your credentials.");
     }
   };
 
+  // Handle Google login
   const handleGoogleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
@@ -27,6 +31,7 @@ function Login({ onLogin }) {
     }
   };
 
+  // Handle Facebook login
   const handleFacebookLogin = async () => {
     try {
       const result = await signInWithPopup(auth, facebookProvider);
@@ -46,12 +51,14 @@ function Login({ onLogin }) {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
         <button type="submit">Login</button>
       </form>
