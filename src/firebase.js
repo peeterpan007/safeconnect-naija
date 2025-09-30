@@ -1,16 +1,20 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getAuth } from "firebase/auth";
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  FacebookAuthProvider 
+} from "firebase/auth";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAN4rkr84ZTDiZzXrguNfatyU2H9Icjoyc",
-  authDomain: "safeconnectnaija.firebaseapp.com",
+  apiKey: "AIzaSyAN4rkr84ZTDiZzXrguNfatyU2H9Icjoyc", 
+  authDomain: "safeconnectnaija.firebaseapp.com", 
   projectId: "safeconnectnaija",
   storageBucket: "safeconnectnaija.firebasestorage.app",
-  messagingSenderId: "551611887104",
-  appId: "1:551611887104:web:42da44534f3c616febf2e5",
+  messagingSenderId: "551611887104", 
+  appId: "1:551611887104:web:42da44534f3c616febf2e5", 
   measurementId: "G-D75MKP0WC4"
 };
 
@@ -18,7 +22,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 
-// Initialize Firebase Authentication and export it
+// Initialize Firebase Authentication
 const auth = getAuth(app);
 
-export { app, analytics, auth };
+// ✅ Add and export providers
+const googleProvider = new GoogleAuthProvider();
+const facebookProvider = new FacebookAuthProvider();
+
+export { app, analytics, auth, googleProvider, facebookProvider };
