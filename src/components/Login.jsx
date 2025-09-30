@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { getAuth, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth";
+import { auth, googleProvider, facebookProvider } from "../firebase";
+import { signInWithPopup } from "firebase/auth";
 
 function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const auth = getAuth();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -17,9 +17,8 @@ function Login({ onLogin }) {
   };
 
   const handleGoogleLogin = async () => {
-    const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
       onLogin?.({ email: user.email, name: user.displayName });
     } catch (error) {
@@ -29,9 +28,8 @@ function Login({ onLogin }) {
   };
 
   const handleFacebookLogin = async () => {
-    const provider = new FacebookAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, facebookProvider);
       const user = result.user;
       onLogin?.({ email: user.email, name: user.displayName });
     } catch (error) {
