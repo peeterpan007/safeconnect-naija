@@ -1,38 +1,52 @@
 import React, { useState } from "react";
 import { auth, googleProvider, facebookProvider } from "../firebase";
-import { signInWithPopup } from "firebase/auth";
+import { signInWithPopup, createUserWithEmailAndPassword } from "firebase/auth";
 
 function SignUp({ onSignUp }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
+  // Handle Email/Password Sign Up
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (name && email && password) {
-      onSignUp?.({ name, email });
-    } else {
-      alert("Please fill in all fields");
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Update displayName if provided
+      if (name) {
+        await user.updateProfile({ displayName: name });
+      }
+
+      onSignUp?.({ name: user.displayName || name, email: user.email });
+    } catch (error) {
+      console.error(error);
+      alert("Sign-up failed. Please try again.");
     }
   };
 
+  // Handle Google Sign Up
   const handleGoogleSignUp = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
-      console.log("Google user:", result.user);
-      onSignUp?.({ name: result.user.displayName, email: result.user.email });
+      const user = result.user;
+      onSignUp?.({ name: user.displayName, email: user.email });
     } catch (error) {
       console.error(error);
+      alert("Google sign-up failed");
     }
   };
 
+  // Handle Facebook Sign Up
   const handleFacebookSignUp = async () => {
     try {
       const result = await signInWithPopup(auth, facebookProvider);
-      console.log("Facebook user:", result.user);
-      onSignUp?.({ name: result.user.displayName, email: result.user.email });
+      const user = result.user;
+      onSignUp?.({ name: user.displayName, email: user.email });
     } catch (error) {
       console.error(error);
+      alert("Facebook sign-up failed");
     }
   };
 
@@ -49,12 +63,14 @@ function SignUp({ onSignUp }) {
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        required
       />
       <input
         type="password"
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+        required
       />
       <button type="submit">Sign Up</button>
 
