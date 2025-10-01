@@ -26,7 +26,6 @@ import SignUp from "./components/SignUp";
 import PhoneLogin from "./components/PhoneLogin";
 
 import { UserProvider, useUser } from "./components/UserContext";
-import { IncidentProvider } from "./components/IncidentContext";  // ✅ FIXED
 
 // Splash component
 function Splash({ onFinish }) {
@@ -134,14 +133,15 @@ function AppContent() {
   );
 
   const renderTabContent = () => {
+    // Guest users
     if (guest) {
       switch (activeTab) {
         case "home":
+          return renderHomePage();
         case "incidents":
-          return activeTab === "home"
-            ? renderHomePage()
-            : <IncidentReports user={user} guest={guest} />;
+          return <IncidentReports user={null} guest={true} />;
         case "map":
+          return <IncidentMap />;
         case "ads":
         case "community":
         case "events":
@@ -156,7 +156,7 @@ function AppContent() {
       }
     }
 
-    // Full access for logged-in users
+    // Logged in users full access
     switch (activeTab) {
       case "home":
         return renderHomePage();
@@ -187,7 +187,7 @@ function AppContent() {
 
       <div className="main-content">{renderTabContent()}</div>
 
-      {user && (
+      {(user || guest) && (
         <nav className="bottom-nav">
           <button onClick={() => setActiveTab("home")} className="nav-btn">
             <FaHome size={24} />
@@ -198,31 +198,33 @@ function AppContent() {
           <button onClick={() => setActiveTab("map")} className="nav-btn">
             <FaMapMarkerAlt size={24} />
           </button>
-          <button onClick={() => setActiveTab("ads")} className="nav-btn">
-            <FaBullhorn size={24} />
-          </button>
-          <button onClick={() => setActiveTab("community")} className="nav-btn">
-            <FaUsers size={24} />
-          </button>
-          <button onClick={() => setActiveTab("events")} className="nav-btn">
-            <FaCalendarAlt size={24} />
-          </button>
-          <button onClick={() => setActiveTab("news")} className="nav-btn">
-            <FaNewspaper size={24} />
-          </button>
+          {!guest && (
+            <>
+              <button onClick={() => setActiveTab("ads")} className="nav-btn">
+                <FaBullhorn size={24} />
+              </button>
+              <button onClick={() => setActiveTab("community")} className="nav-btn">
+                <FaUsers size={24} />
+              </button>
+              <button onClick={() => setActiveTab("events")} className="nav-btn">
+                <FaCalendarAlt size={24} />
+              </button>
+              <button onClick={() => setActiveTab("news")} className="nav-btn">
+                <FaNewspaper size={24} />
+              </button>
+            </>
+          )}
         </nav>
       )}
     </div>
   );
 }
 
-// Wrap App in both UserProvider & IncidentProvider
+// Wrap App in UserProvider
 function App() {
   return (
     <UserProvider>
-      <IncidentProvider>
-        <AppContent />
-      </IncidentProvider>
+      <AppContent />
     </UserProvider>
   );
 }
