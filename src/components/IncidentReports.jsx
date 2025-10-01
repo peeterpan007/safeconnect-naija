@@ -11,13 +11,32 @@ const UPLOAD_PRESET = "your_upload_preset";
 
 // Incident titles
 const INCIDENT_TITLES = [
-  "Robbery", "Burglary (breaking and entering)", "Shoplifting", "Car theft",
-  "Pickpocketing", "Vandalism", "Arson (Starting a fire)", "Trespassing",
-  "Looting", "Kidnapping", "Assault", "Battery", "Homicide (murder)",
-  "Manslaughter", "Domestic violence", "Sexual assault", "Child abuse",
-  "Human trafficking", "Stalking", "Extortion", "Drug trafficking",
-  "Illegal possession of firearms", "Smuggling", "Hit and run",
-  "Drunk driving (DUI)", "Rioting"
+  "Robbery",
+  "Burglary (breaking and entering)",
+  "Shoplifting",
+  "Car theft",
+  "Pickpocketing",
+  "Vandalism",
+  "Arson (Starting a fire)",
+  "Trespassing",
+  "Looting",
+  "Kidnapping",
+  "Assault",
+  "Battery",
+  "Homicide (murder)",
+  "Manslaughter",
+  "Domestic violence",
+  "Sexual assault",
+  "Child abuse",
+  "Human trafficking",
+  "Stalking",
+  "Extortion",
+  "Drug trafficking",
+  "Illegal possession of firearms",
+  "Smuggling",
+  "Hit and run",
+  "Drunk driving (DUI)",
+  "Rioting",
 ];
 
 function IncidentReporting({ user = null, onIncidentAdded }) {
@@ -52,7 +71,7 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
         second: "2-digit",
         hour12: false,
       });
-      setIncident(prev => ({ ...prev, timeISO: iso, timestamp: formatted }));
+      setIncident((prev) => ({ ...prev, timeISO: iso, timestamp: formatted }));
     }, 1000);
     return () => clearInterval(interval);
   }, []);
@@ -63,7 +82,6 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
       alert("Geolocation not supported");
       return;
     }
-
     const id = navigator.geolocation.watchPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
@@ -73,26 +91,25 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
           );
           const data = await res.json();
           const addr = data.display_name || "Unknown location";
-          setIncident(prev => ({
+          setIncident((prev) => ({
             ...prev,
             location: { latitude, longitude },
-            address: addr
+            address: addr,
           }));
         } catch {
-          setIncident(prev => ({
+          setIncident((prev) => ({
             ...prev,
             location: { latitude, longitude },
-            address: `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+            address: "Coordinates only",
           }));
         }
       },
       (err) => {
         console.error(err);
-        alert("Could not fetch location. Please enable GPS.");
+        alert("Could not fetch location. Enable GPS.");
       },
       { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
     );
-
     setWatchId(id);
   };
 
@@ -109,18 +126,14 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
       alert("Please provide a title and location for the incident.");
       return;
     }
-
     const finalIncident = {
       id: Date.now().toString(),
       ...incident,
       user: reportAsGuest ? "Guest" : user?.name || "Guest",
     };
-
     db.incidents.push(finalIncident);
     saveDB(db);
     onIncidentAdded?.(finalIncident);
-
-    // Reset
     setIncident({
       title: "",
       date: "",
@@ -142,15 +155,13 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setLoading(true);
-
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", UPLOAD_PRESET);
-
     try {
       const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData });
       const data = await res.json();
-      setIncident(prev => ({ ...prev, imageUrl: data.secure_url }));
+      setIncident((prev) => ({ ...prev, imageUrl: data.secure_url }));
     } catch (err) {
       console.error(err);
       alert("Upload failed!");
@@ -167,17 +178,15 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
 
       {/* Guest/User toggle */}
       <div style={{ textAlign: "center", marginBottom: "10px" }}>
-        {user ? (
+        <label style={{ marginRight: "10px" }}>
+          <input type="radio" checked={reportAsGuest} onChange={() => setReportAsGuest(true)} />
+          Report Anonymously
+        </label>
+        {user && (
           <label>
-            <input
-              type="checkbox"
-              checked={reportAsGuest}
-              onChange={() => setReportAsGuest(!reportAsGuest)}
-            />
-            {reportAsGuest ? "Report Anonymously" : `Report as ${user.name}`}
+            <input type="radio" checked={!reportAsGuest} onChange={() => setReportAsGuest(false)} />
+            Report as {user.name}
           </label>
-        ) : (
-          <p style={{ fontWeight: "bold" }}>Reporting as Guest</p>
         )}
       </div>
 
@@ -205,7 +214,7 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
             style={{ width: "100%", padding: "8px" }}
           >
             <option value="">Select Incident Title</option>
-            {INCIDENT_TITLES.map(title => (
+            {INCIDENT_TITLES.map((title) => (
               <option key={title} value={title}>{title}</option>
             ))}
             <option value="Other">Other (type below)</option>
@@ -221,21 +230,26 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
         )}
       </div>
 
-      {/* Date & Time */}
+      {/* Date Picker */}
       <div style={{ marginBottom: "10px" }}>
         <DatePicker
           selected={incident.date ? new Date(incident.date) : null}
-          onChange={date => setIncident({ ...incident, date: date ? date.toISOString().split("T")[0] : "" })}
+          onChange={(date) =>
+            setIncident({ ...incident, date: date ? date.toISOString().split("T")[0] : "" })
+          }
           dateFormat="dd/MM/yyyy"
           placeholderText="Select date dd/mm/yy"
           className="custom-input"
         />
       </div>
 
+      {/* Time Picker */}
       <div style={{ marginBottom: "10px" }}>
         <DatePicker
           selected={incident.timeISO ? new Date(incident.timeISO) : null}
-          onChange={time => setIncident({ ...incident, timeISO: time ? time.toISOString() : "" })}
+          onChange={(time) =>
+            setIncident({ ...incident, timeISO: time ? time.toISOString() : "" })
+          }
           showTimeSelect
           showTimeSelectOnly
           timeIntervals={5}
@@ -250,7 +264,7 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
       <textarea
         placeholder="Short Description"
         value={incident.description}
-        onChange={e => setIncident({ ...incident, description: e.target.value })}
+        onChange={(e) => setIncident({ ...incident, description: e.target.value })}
         style={{ width: "95%", marginBottom: "10px", padding: "8px" }}
       />
 
@@ -266,48 +280,61 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
         <button
           type="button"
           onClick={startTracking}
-          style={{ flex: 1, padding: "8px", background: "green", color: "#fff", border: "none", borderRadius: "4px" }}
+          style={{ flex: 1, padding: "10px", backgroundColor: "#066c4a", color: "#fff", border: "none", borderRadius: "5px" }}
         >
-          Start GPS / Share Location
+          Start Live Location 🌍
         </button>
         <button
           type="button"
           onClick={stopTracking}
-          style={{ flex: 1, padding: "8px", background: "red", color: "#fff", border: "none", borderRadius: "4px" }}
+          style={{ flex: 1, padding: "10px", backgroundColor: "#c21818", color: "#fff", border: "none", borderRadius: "5px" }}
         >
-          Stop GPS
+          Stop Live Location 🛑
         </button>
       </div>
 
       {incident.location && (
-        <p style={{ fontSize: "12px", color: "#555" }}>📍 {incident.address}</p>
+        <p style={{ fontSize: "0.9em", color: "#333", marginBottom: "10px" }}>
+          Current Location: {incident.address} <br />
+          Coordinates: {incident.location.latitude.toFixed(5)}, {incident.location.longitude.toFixed(5)}
+        </p>
       )}
 
-      {/* State & LGA */}
-      <div style={{ display: "flex", gap: "5px", marginBottom: "10px" }}>
+      {/* State / LGA */}
+      <div style={{ marginBottom: "10px" }}>
         <select
           value={incident.state}
           onChange={(e) => setIncident({ ...incident, state: e.target.value, lga: "" })}
-          style={{ flex: 1, padding: "8px" }}
+          style={{ width: "100%", padding: "8px", marginBottom: "5px" }}
         >
           <option value="">Select State</option>
-          {Object.keys(statesAndLGAs).map(state => <option key={state}>{state}</option>)}
+          {Object.keys(statesAndLGAs).map((state) => (
+            <option key={state} value={state}>{state}</option>
+          ))}
         </select>
-
         <select
           value={incident.lga}
           onChange={(e) => setIncident({ ...incident, lga: e.target.value })}
-          style={{ flex: 1, padding: "8px" }}
-          disabled={!incident.state}
+          style={{ width: "100%", padding: "8px" }}
         >
           <option value="">Select LGA</option>
-          {incident.state && statesAndLGAs[incident.state].map(lga => <option key={lga}>{lga}</option>)}
+          {incident.state &&
+            statesAndLGAs[incident.state].map((lga) => <option key={lga} value={lga}>{lga}</option>)}
         </select>
       </div>
 
       <button
+        type="button"
         onClick={addIncident}
-        style={{ width: "100%", padding: "10px", background: "#007bff", color: "#fff", border: "none", borderRadius: "4px" }}
+        style={{
+          width: "100%",
+          padding: "12px",
+          backgroundColor: "#066c4a",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          fontWeight: "bold",
+        }}
       >
         Submit Incident
       </button>
