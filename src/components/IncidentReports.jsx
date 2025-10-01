@@ -1,99 +1,121 @@
-import React, { useState, useContext } from "react";
-import { IncidentContext } from "./IncidentContext";
+import React, { useState, useEffect } from "react";
+import IncidentMap from "./IncidentMap";
 
-export default function IncidentReport({ user }) {
-  const { incidents, addIncident, setCurrentIncident } = useContext(IncidentContext);
-
+function IncidentReports({ user }) {
+  const [incidents, setIncidents] = useState([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [state, setState] = useState("");
   const [location, setLocation] = useState(null);
+  const [address, setAddress] = useState("");
 
-  const shareLocation = () => {
+  // Get current location on component mount
+  useEffect(() => {
     if (!navigator.geolocation) {
-      return alert("Geolocation is not supported by your browser.");
+      console.warn("Geolocation is not supported by this browser.");
+      return;
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        // Optional: convert coordinates to address via reverse geocoding API
-        const address = `Lat: ${latitude.toFixed(5)}, Lng: ${longitude.toFixed(5)}`;
-
-        setLocation({ latitude, longitude, address });
-        alert(`Location shared: ${address}`);
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setLocation({ lat: latitude, lng: longitude });
+        setAddress(`${latitude.toFixed(5)},${longitude.toFixed(5)}`);
       },
-      (error) => {
-        console.error(error);
-        alert("Unable to retrieve your location.");
+      (err) => {
+        console.warn("Error getting location:", err.message);
       }
     );
-  };
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Validation
-    if (!title.trim()) return alert("Please provide a title for the incident.");
-    if (!description.trim()) return alert("Please provide a description.");
-    if (!location) return alert("Please share your location first.");
+    if (!title || !description || !state || !location) {
+      alert("Please fill in all fields including your location.");
+      return;
+    }
 
     const newIncident = {
-      id: Date.now(),
-      title: title.trim(),
-      description: description.trim(),
+      title,
+      description,
+      state,
       location,
-      user: user || "Guest",
+      address,
     };
 
-    addIncident(newIncident);
-    setCurrentIncident(newIncident);
-
-    // Reset form
+    setIncidents([newIncident, ...incidents]);
     setTitle("");
     setDescription("");
-    setLocation(null);
-
+    setState("");
+    // Keep location for next submission
     alert("Incident submitted successfully!");
   };
 
+  // Group incidents by state
+  const incidentsByState = incidents.reduce((acc, incident) => {
+    if (!acc[incident.state]) acc[incident.state] = [];
+    acc[incident.state].push(incident);
+    return acc;
+  }, {});
+
   return (
-    <div className="incident-report">
-      <h2>Report Incident {user ? `as ${user}` : "as Guest"}</h2>
-
+    <div style={{ maxWidth: "600px", margin: "0 auto" }}>
+      <h2>Report an Incident</h2>
       <form onSubmit={handleSubmit}>
-        <div>
-          <label>Title</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter incident title"
-            required
-          />
-        </div>
-
-        <div>
-          <label>Description</label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe the incident"
-            required
-          />
-        </div>
-
-        <div>
-          <button type="button" onClick={shareLocation}>
-            {location ? "Location Shared ✅" : "Share Location"}
-          </button>
-        </div>
-
-        <div>
-          <button type="submit" disabled={!title.trim() || !description.trim() || !location}>
-            Submit Incident
-          </button>
-        </div>
+        <input
+          type="text"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          style={{ width: "100%", marginBottom: "10px" }}
+        />
+        <textarea
+          placeholder="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          style={{ width: "100%", marginBottom: "10px" }}
+        />
+        <input
+          type="text"
+          placeholder="State"
+          value={state}
+          onChange={(e) => setState(e.target.value)}
+          style={{ width: "100%", marginBottom: "10px" }}
+        />
+        <input
+          type="text"
+          placeholder="Your Location (auto-detected)"
+          value={address}
+          readOnly
+          style={{ width: "100%", marginBottom: "10px", backgroundColor: "#f0f0f0" }}
+        />
+        <button type="submit">Submit Incident</button>
       </form>
+
+      {/* Map showing all incidents */}
+      {incidents.length > 0 && (
+        <div style={{ marginTop: "20px" }}>
+          <h3>Incident Map</h3>
+          <IncidentMap incidents={incidents} height="400px" />
+        </div>
+      )}
+
+      {/* List of incidents grouped by state */}
+      {Object.keys(incidentsByState).map((stateName) => (
+        <div key={stateName} style={{ marginTop: "20px" }}>
+          <h3>{stateName}</h3>
+          <ul>
+            {incidentsByState[stateName].map((incident, idx) => (
+              <li key={idx}>
+                <strong>{incident.title}</strong>: {incident.description} ({incident.address})
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </div>
   );
 }
+
+export default IncidentReports;

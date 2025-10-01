@@ -1,30 +1,37 @@
-import React, { useState } from "react";
+import React from "react";
 import IncidentReporting from "./IncidentReporting";
 import IncidentMap from "./IncidentMap";
+import { useIncidents } from "./IncidentContext";
 
-function IncidentDashboard({ user }) {
-  const [currentLocation, setCurrentLocation] = useState(null);
-  const [currentAddress, setCurrentAddress] = useState("");
+export default function IncidentDashboard({ user }) {
+  const { incidents } = useIncidents();
 
-  const handleIncidentAdded = (incident) => {
-    // Update map location when an incident with location is added
-    if (incident.location) {
-      setCurrentLocation(incident.location);
-      setCurrentAddress(incident.address);
-    }
-    alert("Incident submitted successfully!");
-  };
+  // Group incidents by state
+  const incidentsByState = incidents.reduce((acc, inc) => {
+    if (!acc[inc.state]) acc[inc.state] = [];
+    acc[inc.state].push(inc);
+    return acc;
+  }, {});
 
   return (
-    <div style={{ maxWidth: "600px", margin: "20px auto", fontFamily: "Arial, sans-serif" }}>
-      <IncidentReporting user={user} onIncidentAdded={handleIncidentAdded} />
+    <div style={{ maxWidth: "800px", margin: "20px auto", fontFamily: "Arial, sans-serif" }}>
+      <IncidentReporting user={user} />
+      <h3 style={{ textAlign: "center", margin: "20px 0", color: "#066c4a" }}>Incident Location Map</h3>
+      <IncidentMap />
 
-      <h3 style={{ textAlign: "center", margin: "20px 0", color: "#066c4a" }}>
-        Incident Location Map
-      </h3>
-      <IncidentMap location={currentLocation} address={currentAddress} height="400px" />
+      <h3 style={{ marginTop: "20px", color: "#066c4a" }}>Reported Incidents by State</h3>
+      {Object.keys(incidentsByState).map((state) => (
+        <div key={state} style={{ marginBottom: "10px" }}>
+          <h4 style={{ color: "#0a4a2a" }}>{state}</h4>
+          <ul>
+            {incidentsByState[state].map((inc) => (
+              <li key={inc.id}>
+                <strong>{inc.title}</strong> — {inc.description} (Reported by: {inc.user})
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </div>
   );
 }
-
-export default IncidentDashboard;
