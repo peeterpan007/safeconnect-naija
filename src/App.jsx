@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from "react";
-import {
-  FaHome,
-  FaMapMarkerAlt,
-  FaClipboardList,
-  FaBullhorn,
-  FaUsers,
-  FaCalendarAlt,
-  FaNewspaper,
-} from "react-icons/fa";
+import { FaHome, FaMapMarkerAlt, FaClipboardList, FaBullhorn, FaUsers, FaCalendarAlt, FaNewspaper } from "react-icons/fa";
+import { UserProvider, useUser } from "./components/UserContext";
 
 import IncidentReports from "./components/IncidentReports";
 import IncidentMap from "./components/IncidentMap";
@@ -16,18 +9,14 @@ import CommunityConnect from "./components/CommunityConnect";
 import NewsUpdate from "./components/NewsUpdate";
 import LocalEventsAndBusiness from "./components/LocalEventsBusiness";
 
+import Login from "./components/Login";
+import SignUp from "./components/SignUp";
+import PhoneLogin from "./components/PhoneLogin"; 
 import logo from "./assets/Connect4.jpg";
 import SCLogo2 from "./assets/SCLogo2.png";
 import startupSoundFile from "./assets/startup.mp3";
 import "./App.css";
 
-import Login from "./components/Login";
-import SignUp from "./components/SignUp";
-import PhoneLogin from "./components/PhoneLogin";
-
-import { UserProvider, useUser } from "./components/UserContext"; // Use centralized context
-
-// Splash component
 function Splash({ onFinish }) {
   const [fadeOut, setFadeOut] = useState(false);
   const [flash, setFlash] = useState(false);
@@ -35,7 +24,6 @@ function Splash({ onFinish }) {
   useEffect(() => {
     const audio = new Audio(startupSoundFile);
     audio.volume = 1;
-
     audio.play().catch(() => {
       const handleInteraction = () => {
         audio.play().catch(() => {});
@@ -50,11 +38,9 @@ function Splash({ onFinish }) {
       const duration = audio.duration * 1000;
       const flashTime = duration * 0.8;
       const fadeTime = 100;
-
       const flashTimer = setTimeout(() => setFlash(true), flashTime);
       const fadeTimer = setTimeout(() => setFadeOut(true), duration - fadeTime);
       const finishTimer = setTimeout(onFinish, duration);
-
       return () => {
         clearTimeout(flashTimer);
         clearTimeout(fadeTimer);
@@ -65,56 +51,35 @@ function Splash({ onFinish }) {
 
   return (
     <div className={`loading-screen ${fadeOut ? "fade-out" : ""}`}>
-      <img
-        src={SCLogo2}
-        alt="Loading Logo"
-        className={`loading-logo ${fadeOut ? "zoom-out" : ""}`}
-      />
+      <img src={SCLogo2} alt="Loading Logo" className={`loading-logo ${fadeOut ? "zoom-out" : ""}`} />
       {flash && <div className="flash-overlay" />}
     </div>
   );
 }
 
-// Main App
 function AppContent() {
+  const { user, login, loginAsGuest } = useUser();
   const [activeTab, setActiveTab] = useState("home");
   const [authTab, setAuthTab] = useState("login");
   const [loading, setLoading] = useState(true);
 
-  const { user, login, continueAsGuest } = useUser();
+  if (loading) return <Splash onFinish={() => setLoading(false)} />;
 
   const renderHomePage = () => (
-    <div className={`home-container ${loading ? "fade-hidden" : "fade-in"}`}>
+    <div className="home-container">
       <img src={logo} alt="SafeConnect Logo" className="home-logo" />
-      <p className="home-description">
-        Building safer, stronger communities across Nigeria
-      </p>
+      <p className="home-description">Building safer, stronger communities across Nigeria</p>
 
-      <div className="auth-tabs">
-        <button
-          onClick={() => setAuthTab("login")}
-          className={authTab === "login" ? "tab-button active-tab" : "tab-button"}
-        >
-          Login
-        </button>
-        <button
-          onClick={() => setAuthTab("signup")}
-          className={authTab === "signup" ? "tab-button active-tab" : "tab-button"}
-        >
-          Sign Up
-        </button>
-        <button
-          onClick={() => setAuthTab("phone")}
-          className={authTab === "phone" ? "tab-button active-tab" : "tab-button"}
-        >
-          Phone Login
-        </button>
-        <button onClick={continueAsGuest} className="tab-button">
-          Continue as Guest
-        </button>
-      </div>
+      {!user && (
+        <div className="auth-tabs">
+          <button onClick={() => setAuthTab("login")} className={authTab === "login" ? "tab-button active-tab" : "tab-button"}>Login</button>
+          <button onClick={() => setAuthTab("signup")} className={authTab === "signup" ? "tab-button active-tab" : "tab-button"}>Sign Up</button>
+          <button onClick={() => setAuthTab("phone")} className={authTab === "phone" ? "tab-button active-tab" : "tab-button"}>Phone Login</button>
+          <button onClick={loginAsGuest} className="tab-button">Continue as Guest</button>
+        </div>
+      )}
 
-      <div className="auth-form-container" key={authTab}>
+      <div className="auth-form-container">
         {authTab === "login" && <Login onLogin={login} />}
         {authTab === "signup" && <SignUp onSignUp={login} />}
         {authTab === "phone" && <PhoneLogin onVerify={login} />}
@@ -123,72 +88,44 @@ function AppContent() {
   );
 
   const renderTabContent = () => {
+    const isGuest = user?.role === "guest";
     switch (activeTab) {
       case "home":
         return renderHomePage();
       case "incidents":
-        return <IncidentReports user={user} />;
+        return <IncidentReports user={user} editable={!isGuest} />;
       case "map":
-        return (
-          <div className="map-container">
-            <IncidentMap />
-          </div>
-        );
+        return <IncidentMap user={user} viewOnly={isGuest} />;
       case "ads":
-        return <Ads user={user} />;
+        return <Ads user={user} viewOnly={isGuest} />;
       case "community":
-        return <CommunityConnect user={user} />;
+        return <CommunityConnect user={user} viewOnly={isGuest} />;
       case "events":
-        return (
-          <div className="events-container">
-            <LocalEventsAndBusiness user={user} />
-          </div>
-        );
+        return <LocalEventsAndBusiness user={user} viewOnly={isGuest} />;
       case "news":
-        return <NewsUpdate user={user} />;
+        return <NewsUpdate user={user} viewOnly={isGuest} />;
       default:
         return null;
     }
   };
 
-  if (loading) return <Splash onFinish={() => setLoading(false)} />;
-
   return (
     <div>
-      <header className="app-header">
-        <h1>SafeConnect Naija</h1>
-      </header>
-
+      <header className="app-header"><h1>SafeConnect Naija</h1></header>
       <div className="main-content">{renderTabContent()}</div>
-
       <nav className="bottom-nav">
-        <button onClick={() => setActiveTab("home")} className="nav-btn">
-          <FaHome size={24} />
-        </button>
-        <button onClick={() => setActiveTab("incidents")} className="nav-btn">
-          <FaClipboardList size={24} />
-        </button>
-        <button onClick={() => setActiveTab("map")} className="nav-btn">
-          <FaMapMarkerAlt size={24} />
-        </button>
-        <button onClick={() => setActiveTab("ads")} className="nav-btn">
-          <FaBullhorn size={24} />
-        </button>
-        <button onClick={() => setActiveTab("community")} className="nav-btn">
-          <FaUsers size={24} />
-        </button>
-        <button onClick={() => setActiveTab("events")} className="nav-btn">
-          <FaCalendarAlt size={24} />
-        </button>
-        <button onClick={() => setActiveTab("news")} className="nav-btn">
-          <FaNewspaper size={24} />
-        </button>
+        <button onClick={() => setActiveTab("home")} className="nav-btn"><FaHome size={24} /></button>
+        <button onClick={() => setActiveTab("incidents")} className="nav-btn"><FaClipboardList size={24} /></button>
+        <button onClick={() => setActiveTab("map")} className="nav-btn"><FaMapMarkerAlt size={24} /></button>
+        <button onClick={() => setActiveTab("ads")} className="nav-btn"><FaBullhorn size={24} /></button>
+        <button onClick={() => setActiveTab("community")} className="nav-btn"><FaUsers size={24} /></button>
+        <button onClick={() => setActiveTab("events")} className="nav-btn"><FaCalendarAlt size={24} /></button>
+        <button onClick={() => setActiveTab("news")} className="nav-btn"><FaNewspaper size={24} /></button>
       </nav>
     </div>
   );
 }
 
-// Wrap App in UserProvider
 function App() {
   return (
     <UserProvider>
