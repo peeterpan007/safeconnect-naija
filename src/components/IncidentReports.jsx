@@ -4,38 +4,20 @@ import { statesAndLGAs } from "../data/statesAndLGAs";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import IncidentReportingLogo from "../assets/IncidentReporting.png";
-import IncidentMap from "./IncidentMap";
 
+// Cloudinary setup
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
 const UPLOAD_PRESET = "your_upload_preset";
 
+// Incident titles
 const INCIDENT_TITLES = [
-  "Robbery",
-  "Burglary (breaking and entering)",
-  "Shoplifting",
-  "Car theft",
-  "Pickpocketing",
-  "Vandalism",
-  "Arson (Starting a fire)",
-  "Trespassing",
-  "Looting",
-  "Kidnapping",
-  "Assault",
-  "Battery",
-  "Homicide (murder)",
-  "Manslaughter",
-  "Domestic violence",
-  "Sexual assault",
-  "Child abuse",
-  "Human trafficking",
-  "Stalking",
-  "Extortion",
-  "Drug trafficking",
-  "Illegal possession of firearms",
-  "Smuggling",
-  "Hit and run",
-  "Drunk driving (DUI)",
-  "Rioting",
+  "Robbery", "Burglary (breaking and entering)", "Shoplifting", "Car theft",
+  "Pickpocketing", "Vandalism", "Arson (Starting a fire)", "Trespassing",
+  "Looting", "Kidnapping", "Assault", "Battery", "Homicide (murder)",
+  "Manslaughter", "Domestic violence", "Sexual assault", "Child abuse",
+  "Human trafficking", "Stalking", "Extortion", "Drug trafficking",
+  "Illegal possession of firearms", "Smuggling", "Hit and run",
+  "Drunk driving (DUI)", "Rioting"
 ];
 
 function IncidentReporting({ user = null, onIncidentAdded }) {
@@ -51,7 +33,6 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
     location: null,
     address: "",
   });
-
   const [loading, setLoading] = useState(false);
   const [watchId, setWatchId] = useState(null);
   const [useCustomTitle, setUseCustomTitle] = useState(false);
@@ -61,33 +42,57 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
-      setIncident((prev) => ({
-        ...prev,
-        timeISO: now.toISOString(),
-        timestamp: now.toLocaleString("en-GB", { hour12: false }),
-      }));
+      const iso = now.toISOString();
+      const formatted = now.toLocaleString("en-GB", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      });
+      setIncident(prev => ({ ...prev, timeISO: iso, timestamp: formatted }));
     }, 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // GPS tracking
+  // Geolocation
   const startTracking = () => {
     if (!navigator.geolocation) {
       alert("Geolocation not supported");
       return;
     }
+
     const id = navigator.geolocation.watchPosition(
-      (pos) => {
+      async (pos) => {
         const { latitude, longitude } = pos.coords;
-        setIncident((prev) => ({
-          ...prev,
-          location: { latitude, longitude },
-          address: `Lat: ${latitude.toFixed(5)}, Lng: ${longitude.toFixed(5)}`,
-        }));
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          );
+          const data = await res.json();
+          const addr = data.display_name || "Unknown location";
+          setIncident(prev => ({
+            ...prev,
+            location: { latitude, longitude },
+            address: addr
+          }));
+        } catch {
+          setIncident(prev => ({
+            ...prev,
+            location: { latitude, longitude },
+            address: `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+          }));
+        }
       },
-      () => alert("Enable GPS to track location."),
-      { enableHighAccuracy: true }
+      (err) => {
+        console.error(err);
+        alert("Could not fetch location. Please enable GPS.");
+      },
+      { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
     );
+
     setWatchId(id);
   };
 
@@ -98,40 +103,24 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
     }
   };
 
-  // Image upload
-  const handleFileChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setLoading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", UPLOAD_PRESET);
-    try {
-      const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData });
-      const data = await res.json();
-      setIncident((prev) => ({ ...prev, imageUrl: data.secure_url }));
-    } catch {
-      alert("Image upload failed!");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Submit
+  // Add incident
   const addIncident = () => {
     if (!incident.title || !incident.location) {
-      alert("Title and location are required.");
+      alert("Please provide a title and location for the incident.");
       return;
     }
+
     const finalIncident = {
       id: Date.now().toString(),
       ...incident,
-      user: reportAsGuest ? "Anonymous" : user?.name || "Anonymous",
+      user: reportAsGuest ? "Guest" : user?.name || "Guest",
     };
+
     db.incidents.push(finalIncident);
     saveDB(db);
     onIncidentAdded?.(finalIncident);
 
+    // Reset
     setIncident({
       title: "",
       date: "",
@@ -148,13 +137,26 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
     stopTracking();
   };
 
-  // Handle map location selection
-  const handleMapSelect = (latlng) => {
-    setIncident((prev) => ({
-      ...prev,
-      location: { latitude: latlng.lat, longitude: latlng.lng },
-      address: `Lat: ${latlng.lat.toFixed(5)}, Lng: ${latlng.lng.toFixed(5)}`,
-    }));
+  // Image upload
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLoading(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+
+    try {
+      const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData });
+      const data = await res.json();
+      setIncident(prev => ({ ...prev, imageUrl: data.secure_url }));
+    } catch (err) {
+      console.error(err);
+      alert("Upload failed!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -166,18 +168,22 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
       {/* Guest/User toggle */}
       <div style={{ textAlign: "center", marginBottom: "10px" }}>
         {user ? (
-          <>
-            <label style={{ marginRight: "10px" }}>
-              <input type="radio" checked={reportAsGuest} onChange={() => setReportAsGuest(true)} /> Report Anonymously
-            </label>
-            <label>
-              <input type="radio" checked={!reportAsGuest} onChange={() => setReportAsGuest(false)} /> Report as {user.name}
-            </label>
-          </>
+          <label>
+            <input
+              type="checkbox"
+              checked={reportAsGuest}
+              onChange={() => setReportAsGuest(!reportAsGuest)}
+            />
+            {reportAsGuest ? "Report Anonymously" : `Report as ${user.name}`}
+          </label>
         ) : (
-          <span style={{ fontWeight: "bold", color: "#333" }}>Reporting as Guest</span>
+          <p style={{ fontWeight: "bold" }}>Reporting as Guest</p>
         )}
       </div>
+
+      <p style={{ textAlign: "center", color: "#888", marginBottom: "10px" }}>
+        You can report an incident. Guest details won’t be stored.
+      </p>
 
       <p style={{ textAlign: "center", fontWeight: "bold", color: "#555", marginBottom: "15px" }}>
         🕒 Live Time: {incident.timestamp}
@@ -189,13 +195,17 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
           <select
             value={incident.title}
             onChange={(e) => {
-              if (e.target.value === "Other") setUseCustomTitle(true);
-              setIncident({ ...incident, title: e.target.value });
+              if (e.target.value === "Other") {
+                setIncident({ ...incident, title: "" });
+                setUseCustomTitle(true);
+              } else {
+                setIncident({ ...incident, title: e.target.value });
+              }
             }}
             style={{ width: "100%", padding: "8px" }}
           >
             <option value="">Select Incident Title</option>
-            {INCIDENT_TITLES.map((title) => (
+            {INCIDENT_TITLES.map(title => (
               <option key={title} value={title}>{title}</option>
             ))}
             <option value="Other">Other (type below)</option>
@@ -215,71 +225,92 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
       <div style={{ marginBottom: "10px" }}>
         <DatePicker
           selected={incident.date ? new Date(incident.date) : null}
-          onChange={(date) => setIncident({ ...incident, date: date ? date.toISOString().split("T")[0] : "" })}
+          onChange={date => setIncident({ ...incident, date: date ? date.toISOString().split("T")[0] : "" })}
           dateFormat="dd/MM/yyyy"
-          placeholderText="Select date"
+          placeholderText="Select date dd/mm/yy"
           className="custom-input"
         />
       </div>
+
       <div style={{ marginBottom: "10px" }}>
         <DatePicker
           selected={incident.timeISO ? new Date(incident.timeISO) : null}
-          onChange={(time) => setIncident({ ...incident, timeISO: time ? time.toISOString() : "" })}
+          onChange={time => setIncident({ ...incident, timeISO: time ? time.toISOString() : "" })}
           showTimeSelect
           showTimeSelectOnly
           timeIntervals={5}
           timeCaption="Time"
           dateFormat="HH:mm"
-          placeholderText="Select time"
+          placeholderText="Select time hh:mm"
           className="custom-input"
         />
       </div>
 
-      {/* Description & Image */}
+      {/* Description */}
       <textarea
         placeholder="Short Description"
         value={incident.description}
-        onChange={(e) => setIncident({ ...incident, description: e.target.value })}
+        onChange={e => setIncident({ ...incident, description: e.target.value })}
         style={{ width: "95%", marginBottom: "10px", padding: "8px" }}
       />
-      <input type="file" onChange={handleFileChange} style={{ marginBottom: "10px" }} />
-      {loading && <p style={{ color: "#888" }}>Uploading image...</p>}
-      {incident.imageUrl && <img src={incident.imageUrl} alt="Uploaded" style={{ width: "100%", marginBottom: "10px" }} />}
+
+      {/* Image Upload */}
+      <input type="file" onChange={handleFileChange} style={{ width: "100%", marginBottom: "10px" }} />
+      {loading && <p>Uploading image...</p>}
+      {incident.imageUrl && (
+        <img src={incident.imageUrl} alt="Uploaded" style={{ width: "100px", marginBottom: "10px", borderRadius: "4px" }} />
+      )}
+
+      {/* GPS Buttons */}
+      <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+        <button
+          type="button"
+          onClick={startTracking}
+          style={{ flex: 1, padding: "8px", background: "green", color: "#fff", border: "none", borderRadius: "4px" }}
+        >
+          Start GPS / Share Location
+        </button>
+        <button
+          type="button"
+          onClick={stopTracking}
+          style={{ flex: 1, padding: "8px", background: "red", color: "#fff", border: "none", borderRadius: "4px" }}
+        >
+          Stop GPS
+        </button>
+      </div>
+
+      {incident.location && (
+        <p style={{ fontSize: "12px", color: "#555" }}>📍 {incident.address}</p>
+      )}
 
       {/* State & LGA */}
-      <select
-        value={incident.state}
-        onChange={(e) => setIncident({ ...incident, state: e.target.value })}
-        style={{ width: "48%", marginRight: "4%", padding: "8px", marginBottom: "10px" }}
-      >
-        <option value="">Select State</option>
-        {Object.keys(statesAndLGAs).map((st) => (
-          <option key={st} value={st}>{st}</option>
-        ))}
-      </select>
-      <select
-        value={incident.lga}
-        onChange={(e) => setIncident({ ...incident, lga: e.target.value })}
-        style={{ width: "48%", padding: "8px", marginBottom: "10px" }}
-      >
-        <option value="">Select LGA</option>
-        {incident.state && statesAndLGAs[incident.state].map((lga) => <option key={lga} value={lga}>{lga}</option>)}
-      </select>
+      <div style={{ display: "flex", gap: "5px", marginBottom: "10px" }}>
+        <select
+          value={incident.state}
+          onChange={(e) => setIncident({ ...incident, state: e.target.value, lga: "" })}
+          style={{ flex: 1, padding: "8px" }}
+        >
+          <option value="">Select State</option>
+          {Object.keys(statesAndLGAs).map(state => <option key={state}>{state}</option>)}
+        </select>
 
-      {/* GPS */}
-      <div style={{ marginBottom: "10px" }}>
-        <button type="button" onClick={startTracking} disabled={watchId !== null} style={{ marginRight: "10px" }}>Start GPS</button>
-        <button type="button" onClick={stopTracking} disabled={watchId === null}>Stop GPS</button>
-      </div>
-      {incident.address && <p>Location: {incident.address}</p>}
-
-      {/* Map Selection */}
-      <div style={{ marginBottom: "10px" }}>
-        <p style={{ fontWeight: "bold" }}>Or select location on map:</p>
-        <IncidentMap onLocationSelect={handleMapSelect} />
+        <select
+          value={incident.lga}
+          onChange={(e) => setIncident({ ...incident, lga: e.target.value })}
+          style={{ flex: 1, padding: "8px" }}
+          disabled={!incident.state}
+        >
+          <option value="">Select LGA</option>
+          {incident.state && statesAndLGAs[incident.state].map(lga => <option key={lga}>{lga}</option>)}
+        </select>
       </div>
 
-      <button type="button" onClick={addIncident} style={{ padding: "10px 20px", marginTop: "10px" }}>Submit Incident</button>
+      <button
+        onClick={addIncident}
+        style={{ width: "100%", padding: "10px", background: "#007bff", color: "#fff", border: "none", borderRadius: "4px" }}
+      >
+        Submit Incident
+      </button>
     </div>
   );
 }
