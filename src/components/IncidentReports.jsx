@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { db, saveDB } from "../db";
 import { statesAndLGAs } from "../data/statesAndLGAs";
-
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
 import IncidentReportingLogo from "../assets/IncidentReporting.png";
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
@@ -54,7 +51,7 @@ const INCIDENT_TITLES = [
   "Rioting",
 ];
 
-function IncidentReports({ user }) {
+function IncidentReporting({ user = null }) {
   const [incident, setIncident] = useState({
     title: "",
     date: "",
@@ -71,8 +68,9 @@ function IncidentReports({ user }) {
   const [loading, setLoading] = useState(false);
   const [watchId, setWatchId] = useState(null);
   const [useCustomTitle, setUseCustomTitle] = useState(false);
+  const [incidents, setIncidents] = useState(db.incidents || []);
 
-  // Live timestamp (always updating)
+  // Live timestamp
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
@@ -91,6 +89,7 @@ function IncidentReports({ user }) {
     return () => clearInterval(interval);
   }, []);
 
+  // Geolocation
   const startTracking = () => {
     if (!navigator.geolocation) {
       alert("Geolocation not supported");
@@ -135,9 +134,18 @@ function IncidentReports({ user }) {
   };
 
   const addIncident = () => {
-    const finalIncident = { id: Date.now().toString(), ...incident };
+    if (!incident.title || !incident.location) {
+      alert("Please provide a title and location for the incident.");
+      return;
+    }
+    const finalIncident = {
+      id: Date.now().toString(),
+      ...incident,
+      user: user?.name || "Guest",
+    };
     db.incidents.push(finalIncident);
     saveDB(db);
+    setIncidents([...db.incidents]); // Update local state for real-time map
     setIncident({
       title: "",
       date: "",
@@ -174,12 +182,15 @@ function IncidentReports({ user }) {
   };
 
   return (
-    <div style={{ marginBottom: "20px", padding: "15px", background: "#fff", borderRadius: "8px", boxShadow: "0 2px 6px rgba(0,0,0,0.1)" }}>
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: "15px" }}>
+    <div style={{ padding: "15px", background: "#fff", borderRadius: "8px", boxShadow: "0 2px 6px rgba(0,0,0,0.1)" }}>
+      <div style={{ textAlign: "center", marginBottom: "15px" }}>
         <img src={IncidentReportingLogo} alt="Incident Reporting" style={{ height: "170px", objectFit: "contain" }} />
       </div>
 
-      {/* Live timestamp */}
+      <p style={{ textAlign: "center", color: "#888", marginBottom: "10px" }}>
+        You can report an incident as a guest. Your details won’t be stored.
+      </p>
+
       <p style={{ textAlign: "center", fontWeight: "bold", color: "#555", marginBottom: "15px" }}>
         🕒 Live Time: {incident.timestamp}
       </p>
@@ -257,7 +268,9 @@ function IncidentReports({ user }) {
       {/* Image Upload */}
       <input type="file" onChange={handleFileChange} style={{ width: "100%", marginBottom: "10px" }} />
       {loading && <p>Uploading image...</p>}
-      {incident.imageUrl && <img src={incident.imageUrl} alt="Uploaded" style={{ width: "100px", marginBottom: "10px", borderRadius: "4px" }} />}
+      {incident.imageUrl && (
+        <img src={incident.imageUrl} alt="Uploaded" style={{ width: "100px", marginBottom: "10px", borderRadius: "4px" }} />
+      )}
 
       {/* GPS Buttons */}
       <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
@@ -269,36 +282,73 @@ function IncidentReports({ user }) {
         </button>
       </div>
 
-      {/* Map */}
-      {incident.location && (
-        <MapContainer center={[incident.location.latitude, incident.location.longitude]} zoom={15} style={{ height: "200px", width: "100%", marginBottom: "10px" }}>
+      {/* Map with all incidents */}
+      <div style={{ height: "400px", width: "100%", marginBottom: "10px" }}>
+        <MapContainer center={[9.082, 8.6753]} zoom={6} style={{ height: "100%", width: "100%" }}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <Marker position={[incident.location.latitude, incident.location.longitude]}>
-            <Popup>{incident.title || "Incident Location"}</Popup>
-          </Marker>
+          {incidents.map((inc) =>
+            inc.location ? (
+              <Marker key={inc.id} position={[inc.location.latitude, inc.location.longitude]}>
+                <Popup>
+                  <strong>{inc.title}</strong>
+                  <br />
+                  {inc.description}
+                  <br />
+                  {inc.address}
+                  <br />
+                  {inc.user && <em>Reported by: {inc.user}</em>}
+                </Popup>
+              </Marker>
+            ) : null
+          )}
+          {/* Show current incident if in progress */}
+          {incident.location && (
+            <Marker position={[incident.location.latitude, incident.location.longitude]}>
+              <Popup>
+                <strong>{incident.title || "New Incident"}</strong>
+                <br />
+                {incident.description}
+                <br />
+                {incident.address}
+              </Popup>
+            </Marker>
+          )}
         </MapContainer>
-      )}
+      </div>
 
       {/* State & LGA */}
-      <select value={incident.state} onChange={(e) => setIncident({ ...incident, state: e.target.value, lga: "" })} style={{ width: "100%", marginBottom: "10px", padding: "8px" }}>
+      <select
+        value={incident.state}
+        onChange={(e) => setIncident({ ...incident, state: e.target.value, lga: "" })}
+        style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+      >
         <option value="">Select State</option>
         {Object.keys(statesAndLGAs).map((state) => (
           <option key={state} value={state}>{state}</option>
         ))}
       </select>
 
-      <select value={incident.lga} onChange={(e) => setIncident({ ...incident, lga: e.target.value })} disabled={!incident.state} style={{ width: "100%", marginBottom: "10px", padding: "8px" }}>
+      <select
+        value={incident.lga}
+        onChange={(e) => setIncident({ ...incident, lga: e.target.value })}
+        disabled={!incident.state}
+        style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+      >
         <option value="">Select LGA</option>
-        {incident.state && statesAndLGAs[incident.state].map((lga) => (
-          <option key={lga} value={lga}>{lga}</option>
-        ))}
+        {incident.state &&
+          statesAndLGAs[incident.state].map((lga) => (
+            <option key={lga} value={lga}>{lga}</option>
+          ))}
       </select>
 
-      <button onClick={addIncident} style={{ width: "100%", padding: "10px", backgroundColor: "#006400", color: "#fff", fontWeight: "bold", border: "none", borderRadius: "5px" }}>
+      <button
+        onClick={addIncident}
+        style={{ width: "100%", padding: "10px", backgroundColor: "#006400", color: "#fff", fontWeight: "bold", border: "none", borderRadius: "5px" }}
+      >
         Add Incident
       </button>
     </div>
   );
 }
 
-export default IncidentReports;
+export default IncidentReporting;
