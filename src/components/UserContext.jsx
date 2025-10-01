@@ -22,8 +22,12 @@ export const UserProvider = ({ children }) => {
   const login = (userData) => setUser(userData);
   const logout = () => setUser(null);
 
+  // New: continue as guest
+  const continueAsGuest = () =>
+    setUser({ id: `guest_${Date.now()}`, name: "Anonymous", anonymous: true });
+
   return (
-    <UserContext.Provider value={{ user, login, logout }}>
+    <UserContext.Provider value={{ user, login, logout, continueAsGuest }}>
       {children}
     </UserContext.Provider>
   );
