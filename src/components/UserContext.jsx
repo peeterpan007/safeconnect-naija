@@ -1,31 +1,33 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, { createContext, useContext, useState } from "react";
 
-export const UserContext = createContext();
-
-export const useUser = () => useContext(UserContext);
+const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null); // stores user info
+  const [guest, setGuest] = useState(false);
 
-  // Load user from localStorage
-  useEffect(() => {
-    const storedUser = localStorage.getItem("safeConnectUser");
-    if (storedUser) setUser(JSON.parse(storedUser));
-  }, []);
+  // login after Google/Facebook/Phone/SignUp
+  const login = (userData) => {
+    setUser(userData);
+    setGuest(false);
+  };
 
-  // Persist user
-  useEffect(() => {
-    if (user) localStorage.setItem("safeConnectUser", JSON.stringify(user));
-    else localStorage.removeItem("safeConnectUser");
-  }, [user]);
+  // guest access
+  const continueAsGuest = () => {
+    setUser({ name: "Guest" }); // minimal guest object
+    setGuest(true);
+  };
 
-  const login = (userData) => setUser({ ...userData, role: "user" });
-  const loginAsGuest = () => setUser({ id: null, role: "guest", name: "Guest" });
-  const logout = () => setUser(null);
+  const logout = () => {
+    setUser(null);
+    setGuest(false);
+  };
 
   return (
-    <UserContext.Provider value={{ user, login, loginAsGuest, logout }}>
+    <UserContext.Provider value={{ user, guest, login, continueAsGuest, logout }}>
       {children}
     </UserContext.Provider>
   );
 };
+
+export const useUser = () => useContext(UserContext);
