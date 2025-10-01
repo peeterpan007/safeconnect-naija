@@ -133,7 +133,7 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
     };
     db.incidents.push(finalIncident);
     saveDB(db);
-    onIncidentAdded?.(finalIncident); // notify parent map
+    onIncidentAdded?.(finalIncident);
     setIncident({
       title: "",
       date: "",
@@ -177,16 +177,16 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
       </div>
 
       {/* Guest/User toggle */}
-      <div style={{ textAlign: "center", marginBottom: "10px" }}>
-        <label style={{ marginRight: "10px" }}>
-          <input
-            type="radio"
-            checked={reportAsGuest}
-            onChange={() => setReportAsGuest(true)}
-          />
-          Report as Guest
-        </label>
-        {user && (
+      {user ? (
+        <div style={{ textAlign: "center", marginBottom: "10px" }}>
+          <label style={{ marginRight: "10px" }}>
+            <input
+              type="radio"
+              checked={reportAsGuest}
+              onChange={() => setReportAsGuest(true)}
+            />
+            Report as Guest
+          </label>
           <label>
             <input
               type="radio"
@@ -195,8 +195,10 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
             />
             Report as {user.name}
           </label>
-        )}
-      </div>
+        </div>
+      ) : (
+        <p style={{ textAlign: "center", marginBottom: "10px" }}>You are reporting as Guest</p>
+      )}
 
       <p style={{ textAlign: "center", color: "#888", marginBottom: "10px" }}>
         You can report an incident. Guest details won’t be stored.
