@@ -4,11 +4,12 @@ import { statesAndLGAs } from "../data/statesAndLGAs";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import IncidentReportingLogo from "../assets/IncidentReporting.png";
-import IncidentMap from "./IncidentMap";
 
+// Cloudinary setup
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
 const UPLOAD_PRESET = "your_upload_preset";
 
+// Incident titles
 const INCIDENT_TITLES = [
   "Robbery",
   "Burglary (breaking and entering)",
@@ -38,7 +39,7 @@ const INCIDENT_TITLES = [
   "Rioting",
 ];
 
-function IncidentReporting({ user = null }) {
+function IncidentReporting({ user = null, onIncidentAdded }) {
   const [incident, setIncident] = useState({
     title: "",
     date: "",
@@ -51,11 +52,10 @@ function IncidentReporting({ user = null }) {
     location: null,
     address: "",
   });
-
   const [loading, setLoading] = useState(false);
   const [watchId, setWatchId] = useState(null);
   const [useCustomTitle, setUseCustomTitle] = useState(false);
-  const [incidents, setIncidents] = useState(db.incidents || []);
+  const [reportAsGuest, setReportAsGuest] = useState(!user);
 
   // Live timestamp
   useEffect(() => {
@@ -120,6 +120,7 @@ function IncidentReporting({ user = null }) {
     }
   };
 
+  // Add incident
   const addIncident = () => {
     if (!incident.title || !incident.location) {
       alert("Please provide a title and location for the incident.");
@@ -128,11 +129,11 @@ function IncidentReporting({ user = null }) {
     const finalIncident = {
       id: Date.now().toString(),
       ...incident,
-      user: user?.name || "Guest",
+      user: reportAsGuest ? "Guest" : user?.name || "Guest",
     };
     db.incidents.push(finalIncident);
     saveDB(db);
-    setIncidents([...db.incidents]); // Update local state for real-time map
+    onIncidentAdded?.(finalIncident); // notify parent map
     setIncident({
       title: "",
       date: "",
@@ -149,6 +150,7 @@ function IncidentReporting({ user = null }) {
     stopTracking();
   };
 
+  // Image upload
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -174,8 +176,30 @@ function IncidentReporting({ user = null }) {
         <img src={IncidentReportingLogo} alt="Incident Reporting" style={{ height: "170px", objectFit: "contain" }} />
       </div>
 
+      {/* Guest/User toggle */}
+      <div style={{ textAlign: "center", marginBottom: "10px" }}>
+        <label style={{ marginRight: "10px" }}>
+          <input
+            type="radio"
+            checked={reportAsGuest}
+            onChange={() => setReportAsGuest(true)}
+          />
+          Report as Guest
+        </label>
+        {user && (
+          <label>
+            <input
+              type="radio"
+              checked={!reportAsGuest}
+              onChange={() => setReportAsGuest(false)}
+            />
+            Report as {user.name}
+          </label>
+        )}
+      </div>
+
       <p style={{ textAlign: "center", color: "#888", marginBottom: "10px" }}>
-        You can report an incident as a guest. Your details won’t be stored.
+        You can report an incident. Guest details won’t be stored.
       </p>
 
       <p style={{ textAlign: "center", fontWeight: "bold", color: "#555", marginBottom: "15px" }}>
@@ -261,50 +285,51 @@ function IncidentReporting({ user = null }) {
 
       {/* GPS Buttons */}
       <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
-        <button type="button" onClick={startTracking} style={{ flex: 1, padding: "10px", background: "#28a745", color: "#fff", border: "none", borderRadius: "4px" }}>
-          Start Tracking
+        <button type="button" onClick={startTracking} style={{ flex: 1, padding: "10px", backgroundColor: "#066c4a", color: "#fff", border: "none", borderRadius: "5px" }}>
+          Start Live Location 🌍
         </button>
-        <button type="button" onClick={stopTracking} style={{ flex: 1, padding: "10px", background: "#dc3545", color: "#fff", border: "none", borderRadius: "4px" }}>
-          Stop Tracking
+        <button type="button" onClick={stopTracking} style={{ flex: 1, padding: "10px", backgroundColor: "#b70909", color: "#fff", border: "none", borderRadius: "5px" }}>
+          Stop Tracking ⏹️
         </button>
       </div>
 
       {/* State & LGA */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
-        <select
-          value={incident.state}
-          onChange={(e) => setIncident({ ...incident, state: e.target.value, lga: "" })}
-          style={{ flex: 1, padding: "8px" }}
-        >
-          <option value="">Select State</option>
-          {statesAndLGAs.map((s) => (
-            <option key={s.state} value={s.state}>{s.state}</option>
-          ))}
-        </select>
-        <select
-          value={incident.lga}
-          onChange={(e) => setIncident({ ...incident, lga: e.target.value })}
-          style={{ flex: 1, padding: "8px" }}
-          disabled={!incident.state}
-        >
-          <option value="">Select LGA</option>
-          {statesAndLGAs.find((s) => s.state === incident.state)?.lgas.map((lga) => (
+      <select
+        value={incident.state}
+        onChange={(e) => setIncident({ ...incident, state: e.target.value, lga: "" })}
+        style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+      >
+        <option value="">Select State</option>
+        {Object.keys(statesAndLGAs).map((state) => (
+          <option key={state} value={state}>{state}</option>
+        ))}
+      </select>
+
+      <select
+        value={incident.lga}
+        onChange={(e) => setIncident({ ...incident, lga: e.target.value })}
+        disabled={!incident.state}
+        style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
+      >
+        <option value="">Select LGA</option>
+        {incident.state &&
+          statesAndLGAs[incident.state].map((lga) => (
             <option key={lga} value={lga}>{lga}</option>
           ))}
-        </select>
-      </div>
+      </select>
 
-      {/* Add Incident Button */}
+      {/* Address Display */}
+      <p style={{ fontStyle: "italic", color: "#444", marginBottom: "10px" }}>
+        {incident.address ? `Current Address: ${incident.address}` : "GPS not started"}
+      </p>
+
       <button
         type="button"
         onClick={addIncident}
-        style={{ width: "100%", padding: "12px", background: "#007bff", color: "#fff", border: "none", borderRadius: "4px", marginBottom: "15px" }}
+        style={{ width: "100%", padding: "10px", backgroundColor: "#066c4a", color: "#fff", border: "none", borderRadius: "5px", fontWeight: "bold" }}
       >
-        Add Incident
+        Submit Incident 📩
       </button>
-
-      {/* Map */}
-      <IncidentMap incidents={incidents} currentIncident={incident} />
     </div>
   );
 }
