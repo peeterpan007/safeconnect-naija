@@ -2,38 +2,30 @@ import React, { createContext, useState, useContext } from "react";
 
 const IncidentContext = createContext();
 
-export function useIncident() {
-  return useContext(IncidentContext);
-}
-
-export function IncidentProvider({ children }) {
-  const [user, setUser] = useState(null); // { name: "John" } or null
-  const [currentLocation, setCurrentLocation] = useState(null); // { latitude, longitude, address }
-  const [tracking, setTracking] = useState(false);
+export const IncidentProvider = ({ children }) => {
   const [incidents, setIncidents] = useState([]);
-
-  const startTracking = () => setTracking(true);
-  const stopTracking = () => setTracking(false);
+  const [currentIncident, setCurrentIncident] = useState(null);
+  const [user, setUser] = useState(null);
 
   const addIncident = (incident) => {
     setIncidents((prev) => [...prev, incident]);
+    setCurrentIncident(incident);
   };
 
   return (
     <IncidentContext.Provider
       value={{
+        incidents,
+        currentIncident,
+        addIncident,
+        setCurrentIncident,
         user,
         setUser,
-        currentLocation,
-        setCurrentLocation,
-        tracking,
-        startTracking,
-        stopTracking,
-        incidents,
-        addIncident,
       }}
     >
       {children}
     </IncidentContext.Provider>
   );
-}
+};
+
+export const useIncidents = () => useContext(IncidentContext);
