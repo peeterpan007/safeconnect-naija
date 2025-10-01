@@ -102,8 +102,21 @@ function App() {
       </div>
 
       <div className="auth-form-container" key={authTab}>
-        {/* Use separate components for cleaner code */}
-        {authTab === "login" ? <Login /> : <SignUp />}
+        {authTab === "login" ? (
+          <Login
+            onLogin={(userData) => {
+              console.log("Logged in:", userData);
+              // You can set a user state here if needed
+            }}
+          />
+        ) : (
+          <SignUp
+            onSignUp={(userData) => {
+              console.log("Signed up:", userData);
+              // You can set a user state here if needed
+            }}
+          />
+        )}
       </div>
     </div>
   );
