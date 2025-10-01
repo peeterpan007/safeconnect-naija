@@ -1,4 +1,4 @@
-import React, { useState, useEffect, createContext, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaHome,
   FaMapMarkerAlt,
@@ -23,12 +23,9 @@ import "./App.css";
 
 import Login from "./components/Login";
 import SignUp from "./components/SignUp";
-import PhoneLogin from "./components/PhoneLogin"; // New component for OTP login
+import PhoneLogin from "./components/PhoneLogin";
 
-// --- USER CONTEXT ---
-export const UserContext = createContext(null);
-
-export const useUser = () => useContext(UserContext);
+import { UserProvider, useUser } from "./components/UserContext"; // Use centralized context
 
 // Splash component
 function Splash({ onFinish }) {
@@ -78,16 +75,13 @@ function Splash({ onFinish }) {
   );
 }
 
-function App() {
+// Main App
+function AppContent() {
   const [activeTab, setActiveTab] = useState("home");
   const [authTab, setAuthTab] = useState("login");
   const [loading, setLoading] = useState(true);
 
-  const [user, setUser] = useState(null); // null = anonymous/not logged in
-
-  const handleAnonymous = () => {
-    setUser({ id: null, name: "Anonymous" });
-  };
+  const { user, login, continueAsGuest } = useUser();
 
   const renderHomePage = () => (
     <div className={`home-container ${loading ? "fade-hidden" : "fade-in"}`}>
@@ -115,21 +109,15 @@ function App() {
         >
           Phone Login
         </button>
-        <button onClick={handleAnonymous} className="tab-button">
+        <button onClick={continueAsGuest} className="tab-button">
           Continue as Guest
         </button>
       </div>
 
       <div className="auth-form-container" key={authTab}>
-        {authTab === "login" && (
-          <Login onLogin={(userData) => setUser(userData)} />
-        )}
-        {authTab === "signup" && (
-          <SignUp onSignUp={(userData) => setUser(userData)} />
-        )}
-        {authTab === "phone" && (
-          <PhoneLogin onVerify={(userData) => setUser(userData)} />
-        )}
+        {authTab === "login" && <Login onLogin={login} />}
+        {authTab === "signup" && <SignUp onSignUp={login} />}
+        {authTab === "phone" && <PhoneLogin onVerify={login} />}
       </div>
     </div>
   );
@@ -163,44 +151,49 @@ function App() {
     }
   };
 
-  if (loading) {
-    return <Splash onFinish={() => setLoading(false)} />;
-  }
+  if (loading) return <Splash onFinish={() => setLoading(false)} />;
 
   return (
-    <UserContext.Provider value={{ user, setUser }}>
-      <div>
-        <header className="app-header">
-          <h1>SafeConnect Naija</h1>
-        </header>
+    <div>
+      <header className="app-header">
+        <h1>SafeConnect Naija</h1>
+      </header>
 
-        <div className="main-content">{renderTabContent()}</div>
+      <div className="main-content">{renderTabContent()}</div>
 
-        <nav className="bottom-nav">
-          <button onClick={() => setActiveTab("home")} className="nav-btn">
-            <FaHome size={24} />
-          </button>
-          <button onClick={() => setActiveTab("incidents")} className="nav-btn">
-            <FaClipboardList size={24} />
-          </button>
-          <button onClick={() => setActiveTab("map")} className="nav-btn">
-            <FaMapMarkerAlt size={24} />
-          </button>
-          <button onClick={() => setActiveTab("ads")} className="nav-btn">
-            <FaBullhorn size={24} />
-          </button>
-          <button onClick={() => setActiveTab("community")} className="nav-btn">
-            <FaUsers size={24} />
-          </button>
-          <button onClick={() => setActiveTab("events")} className="nav-btn">
-            <FaCalendarAlt size={24} />
-          </button>
-          <button onClick={() => setActiveTab("news")} className="nav-btn">
-            <FaNewspaper size={24} />
-          </button>
-        </nav>
-      </div>
-    </UserContext.Provider>
+      <nav className="bottom-nav">
+        <button onClick={() => setActiveTab("home")} className="nav-btn">
+          <FaHome size={24} />
+        </button>
+        <button onClick={() => setActiveTab("incidents")} className="nav-btn">
+          <FaClipboardList size={24} />
+        </button>
+        <button onClick={() => setActiveTab("map")} className="nav-btn">
+          <FaMapMarkerAlt size={24} />
+        </button>
+        <button onClick={() => setActiveTab("ads")} className="nav-btn">
+          <FaBullhorn size={24} />
+        </button>
+        <button onClick={() => setActiveTab("community")} className="nav-btn">
+          <FaUsers size={24} />
+        </button>
+        <button onClick={() => setActiveTab("events")} className="nav-btn">
+          <FaCalendarAlt size={24} />
+        </button>
+        <button onClick={() => setActiveTab("news")} className="nav-btn">
+          <FaNewspaper size={24} />
+        </button>
+      </nav>
+    </div>
+  );
+}
+
+// Wrap App in UserProvider
+function App() {
+  return (
+    <UserProvider>
+      <AppContent />
+    </UserProvider>
   );
 }
 
