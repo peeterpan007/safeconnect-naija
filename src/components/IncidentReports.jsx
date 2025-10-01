@@ -4,6 +4,7 @@ import { statesAndLGAs } from "../data/statesAndLGAs";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import IncidentReportingLogo from "../assets/IncidentReporting.png";
+import IncidentMap from "./IncidentMap";
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
 const UPLOAD_PRESET = "your_upload_preset";
@@ -131,7 +132,7 @@ function IncidentReporting({ user = null }) {
     };
     db.incidents.push(finalIncident);
     saveDB(db);
-    setIncidents([...db.incidents]);
+    setIncidents([...db.incidents]); // Update local state for real-time map
     setIncident({
       title: "",
       date: "",
@@ -260,45 +261,50 @@ function IncidentReporting({ user = null }) {
 
       {/* GPS Buttons */}
       <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
-        <button type="button" onClick={startTracking} style={{ flex: 1, padding: "10px", backgroundColor: "#066c4a", color: "#fff", border: "none", borderRadius: "5px" }}>
-          Start Live Location 🌍
+        <button type="button" onClick={startTracking} style={{ flex: 1, padding: "10px", background: "#28a745", color: "#fff", border: "none", borderRadius: "4px" }}>
+          Start Tracking
         </button>
-        <button type="button" onClick={stopTracking} style={{ flex: 1, padding: "10px", backgroundColor: "#b70909", color: "#fff", border: "none", borderRadius: "5px" }}>
-          Stop Tracking ⏹️
+        <button type="button" onClick={stopTracking} style={{ flex: 1, padding: "10px", background: "#dc3545", color: "#fff", border: "none", borderRadius: "4px" }}>
+          Stop Tracking
         </button>
       </div>
 
       {/* State & LGA */}
-      <select
-        value={incident.state}
-        onChange={(e) => setIncident({ ...incident, state: e.target.value, lga: "" })}
-        style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
-      >
-        <option value="">Select State</option>
-        {Object.keys(statesAndLGAs).map((state) => (
-          <option key={state} value={state}>{state}</option>
-        ))}
-      </select>
-
-      <select
-        value={incident.lga}
-        onChange={(e) => setIncident({ ...incident, lga: e.target.value })}
-        disabled={!incident.state}
-        style={{ width: "100%", marginBottom: "10px", padding: "8px" }}
-      >
-        <option value="">Select LGA</option>
-        {incident.state &&
-          statesAndLGAs[incident.state].map((lga) => (
+      <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+        <select
+          value={incident.state}
+          onChange={(e) => setIncident({ ...incident, state: e.target.value, lga: "" })}
+          style={{ flex: 1, padding: "8px" }}
+        >
+          <option value="">Select State</option>
+          {statesAndLGAs.map((s) => (
+            <option key={s.state} value={s.state}>{s.state}</option>
+          ))}
+        </select>
+        <select
+          value={incident.lga}
+          onChange={(e) => setIncident({ ...incident, lga: e.target.value })}
+          style={{ flex: 1, padding: "8px" }}
+          disabled={!incident.state}
+        >
+          <option value="">Select LGA</option>
+          {statesAndLGAs.find((s) => s.state === incident.state)?.lgas.map((lga) => (
             <option key={lga} value={lga}>{lga}</option>
           ))}
-      </select>
+        </select>
+      </div>
 
+      {/* Add Incident Button */}
       <button
+        type="button"
         onClick={addIncident}
-        style={{ width: "100%", padding: "10px", backgroundColor: "#006400", color: "#fff", fontWeight: "bold", border: "none", borderRadius: "5px" }}
+        style={{ width: "100%", padding: "12px", background: "#007bff", color: "#fff", border: "none", borderRadius: "4px", marginBottom: "15px" }}
       >
         Add Incident
       </button>
+
+      {/* Map */}
+      <IncidentMap incidents={incidents} currentIncident={incident} />
     </div>
   );
 }
