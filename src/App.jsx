@@ -26,7 +26,7 @@ import SignUp from "./components/SignUp";
 import PhoneLogin from "./components/PhoneLogin";
 
 import { UserProvider, useUser } from "./components/UserContext";
-import { IncidentProvider } from "./components/IncidentContext";   // ✅ NEW
+import { IncidentProvider } from "./components/IncidentContext";  // ✅ FIXED
 
 // Splash component
 function Splash({ onFinish }) {
@@ -138,7 +138,9 @@ function AppContent() {
       switch (activeTab) {
         case "home":
         case "incidents":
-          return activeTab === "home" ? renderHomePage() : <IncidentReports user={user} guest={guest} />;
+          return activeTab === "home"
+            ? renderHomePage()
+            : <IncidentReports user={user} guest={guest} />;
         case "map":
         case "ads":
         case "community":
@@ -214,7 +216,7 @@ function AppContent() {
   );
 }
 
-// ✅ Wrap in BOTH providers
+// Wrap App in both UserProvider & IncidentProvider
 function App() {
   return (
     <UserProvider>
