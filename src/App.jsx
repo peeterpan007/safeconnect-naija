@@ -47,8 +47,8 @@ function Splash({ onFinish }) {
 
     audio.addEventListener("loadedmetadata", () => {
       const duration = audio.duration * 1000;
-      const flashTime = duration * 0.8; // trigger flash near end
-      const fadeTime = 100; // fade 100ms before end
+      const flashTime = duration * 0.8;
+      const fadeTime = 100;
 
       const flashTimer = setTimeout(() => setFlash(true), flashTime);
       const fadeTimer = setTimeout(() => setFadeOut(true), duration - fadeTime);
@@ -102,6 +102,7 @@ function App() {
       </div>
 
       <div className="auth-form-container" key={authTab}>
+        {/* Use separate components for cleaner code */}
         {authTab === "login" ? <Login /> : <SignUp />}
       </div>
     </div>
