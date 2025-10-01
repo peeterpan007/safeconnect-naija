@@ -1,133 +1,74 @@
-import React, { useEffect, useState } from "react";
-import {
-  GoogleMap,
-  Marker,
-  InfoWindow,
-  useLoadScript,
-} from "@react-google-maps/api";
+// src/components/IncidentMap.jsx
+import React from "react";
+import { GoogleMap, Marker, useJsApiLoader } from "@react-google-maps/api";
+import { useIncidents } from "./IncidentContext";
 
-// Map container styles
 const containerStyle = {
   width: "100%",
   height: "400px",
-  borderRadius: "8px",
-  marginBottom: "20px",
 };
 
-// Default Nigeria center
-const defaultCenter = {
-  lat: 9.082,
+const center = {
+  lat: 9.082, // Nigeria approx center
   lng: 8.6753,
 };
 
-export default function IncidentMap({ incidents = [], currentIncident = null }) {
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, // ✅ Your API key in .env
+function IncidentMap() {
+  const { incidents } = useIncidents();
+
+  const { isLoaded } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, // ✅ add your API key in .env
   });
 
-  const [selectedIncident, setSelectedIncident] = useState(null);
-  const [center, setCenter] = useState(defaultCenter);
-
-  // Auto-center on latest incident
-  useEffect(() => {
-    if (currentIncident?.location) {
-      setCenter({
-        lat: currentIncident.location.latitude,
-        lng: currentIncident.location.longitude,
-      });
-    } else if (incidents.length > 0) {
-      const last = incidents[incidents.length - 1];
-      if (last.location) {
-        setCenter({
-          lat: last.location.latitude,
-          lng: last.location.longitude,
-        });
-      }
-    }
-  }, [currentIncident, incidents]);
-
-  // Group incidents by state
-  const groupedByState = incidents.reduce((groups, inc) => {
-    if (!inc.state) return groups;
-    if (!groups[inc.state]) groups[inc.state] = [];
-    groups[inc.state].push(inc);
+  // Group incidents by state (roughly splitting by first word in location)
+  const groupedIncidents = incidents.reduce((groups, incident) => {
+    const state = incident.location.split(",").pop().trim() || "Unknown";
+    if (!groups[state]) groups[state] = [];
+    groups[state].push(incident);
     return groups;
   }, {});
 
-  if (loadError) return <p>Error loading maps</p>;
-  if (!isLoaded) return <p>Loading Maps...</p>;
-
   return (
-    <div>
-      {/* Map */}
-      <GoogleMap
-        mapContainerStyle={containerStyle}
-        center={center}
-        zoom={6}
-      >
-        {/* Render all incidents */}
-        {incidents.map((inc) =>
-          inc.location ? (
+    <div style={{ marginTop: "20px" }}>
+      <h2 style={{ color: "#066c4a" }}>Incident Map</h2>
+
+      {isLoaded ? (
+        <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={6}>
+          {incidents.map((incident) => (
             <Marker
-              key={inc.id}
+              key={incident.id}
               position={{
-                lat: inc.location.latitude,
-                lng: inc.location.longitude,
+                lat: Number(incident.location.split(",")[0]) || 9.082,
+                lng: Number(incident.location.split(",")[1]) || 8.6753,
               }}
-              onClick={() => setSelectedIncident(inc)}
-              icon={{
-                url:
-                  currentIncident?.id === inc.id
-                    ? "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
-                    : "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
-              }}
+              title={incident.title}
             />
-          ) : null
-        )}
+          ))}
+        </GoogleMap>
+      ) : (
+        <p>Loading map...</p>
+      )}
 
-        {/* InfoWindow for selected incident */}
-        {selectedIncident && (
-          <InfoWindow
-            position={{
-              lat: selectedIncident.location.latitude,
-              lng: selectedIncident.location.longitude,
-            }}
-            onCloseClick={() => setSelectedIncident(null)}
-          >
-            <div>
-              <h4>{selectedIncident.title}</h4>
-              <p>{selectedIncident.description}</p>
-              <small>{selectedIncident.address}</small>
-              <br />
-              {selectedIncident.user && (
-                <em>Reported by: {selectedIncident.user}</em>
-              )}
-            </div>
-          </InfoWindow>
-        )}
-      </GoogleMap>
-
-      {/* Incident List by State */}
-      <div style={{ marginTop: "20px" }}>
-        <h3 style={{ color: "#066c4a" }}>Incidents by State</h3>
-        {Object.keys(groupedByState).length === 0 ? (
-          <p>No incidents reported yet.</p>
-        ) : (
-          Object.keys(groupedByState).map((state) => (
-            <div key={state} style={{ marginBottom: "15px" }}>
-              <h4 style={{ marginBottom: "5px", color: "#444" }}>{state}</h4>
-              <ul style={{ paddingLeft: "20px" }}>
-                {groupedByState[state].map((inc) => (
-                  <li key={inc.id}>
-                    <strong>{inc.title}</strong> — {inc.description} <br />
-                    <small>{inc.address}</small>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))
-        )}
+      <h3 style={{ marginTop: "20px", color: "#066c4a" }}>Incidents by State</h3>
+      <div>
+        {Object.entries(groupedIncidents).map(([state, stateIncidents]) => (
+          <div key={state} style={{ marginBottom: "15px" }}>
+            <h4 style={{ color: "#333" }}>{state}</h4>
+            <ul>
+              {stateIncidents.map((incident) => (
+                <li key={incident.id}>
+                  <strong>{incident.title}</strong> - {incident.description || "No description"}
+                  <br />
+                  <em>{incident.location}</em>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
+
+export default IncidentMap;
