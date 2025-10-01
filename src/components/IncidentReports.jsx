@@ -1,26 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { db, saveDB } from "../db";
 import { statesAndLGAs } from "../data/statesAndLGAs";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import IncidentReportingLogo from "../assets/IncidentReporting.png";
 
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
 const UPLOAD_PRESET = "your_upload_preset";
-
-// Fix Leaflet marker icons
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
 
 const INCIDENT_TITLES = [
   "Robbery",
@@ -145,7 +131,7 @@ function IncidentReporting({ user = null }) {
     };
     db.incidents.push(finalIncident);
     saveDB(db);
-    setIncidents([...db.incidents]); // Update local state for real-time map
+    setIncidents([...db.incidents]);
     setIncident({
       title: "",
       date: "",
@@ -280,40 +266,6 @@ function IncidentReporting({ user = null }) {
         <button type="button" onClick={stopTracking} style={{ flex: 1, padding: "10px", backgroundColor: "#b70909", color: "#fff", border: "none", borderRadius: "5px" }}>
           Stop Tracking ⏹️
         </button>
-      </div>
-
-      {/* Map with all incidents */}
-      <div style={{ height: "400px", width: "100%", marginBottom: "10px" }}>
-        <MapContainer center={[9.082, 8.6753]} zoom={6} style={{ height: "100%", width: "100%" }}>
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          {incidents.map((inc) =>
-            inc.location ? (
-              <Marker key={inc.id} position={[inc.location.latitude, inc.location.longitude]}>
-                <Popup>
-                  <strong>{inc.title}</strong>
-                  <br />
-                  {inc.description}
-                  <br />
-                  {inc.address}
-                  <br />
-                  {inc.user && <em>Reported by: {inc.user}</em>}
-                </Popup>
-              </Marker>
-            ) : null
-          )}
-          {/* Show current incident if in progress */}
-          {incident.location && (
-            <Marker position={[incident.location.latitude, incident.location.longitude]}>
-              <Popup>
-                <strong>{incident.title || "New Incident"}</strong>
-                <br />
-                {incident.description}
-                <br />
-                {incident.address}
-              </Popup>
-            </Marker>
-          )}
-        </MapContainer>
       </div>
 
       {/* State & LGA */}
