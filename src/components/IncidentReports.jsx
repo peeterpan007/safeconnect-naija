@@ -1,40 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { db, saveDB } from "../db";
-import { statesAndLGAs } from "../data/statesAndLGAs";
+import { MapContainer, TileLayer } from "react-leaflet";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { db, saveDB } from "../db";
+import { statesAndLGAs } from "../data/statesAndLGAs";
 import IncidentReportingLogo from "../assets/IncidentReporting.png";
+import DraggableMarker from "./DraggableMarker";
 
+// Cloudinary setup
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
 const UPLOAD_PRESET = "your_upload_preset";
 
+// Incident titles
 const INCIDENT_TITLES = [
-  "Robbery",
-  "Burglary (breaking and entering)",
-  "Shoplifting",
-  "Car theft",
-  "Pickpocketing",
-  "Vandalism",
-  "Arson (Starting a fire)",
-  "Trespassing",
-  "Looting",
-  "Kidnapping",
-  "Assault",
-  "Battery",
-  "Homicide (murder)",
-  "Manslaughter",
-  "Domestic violence",
-  "Sexual assault",
-  "Child abuse",
-  "Human trafficking",
-  "Stalking",
-  "Extortion",
-  "Drug trafficking",
-  "Illegal possession of firearms",
-  "Smuggling",
-  "Hit and run",
-  "Drunk driving (DUI)",
-  "Rioting",
+  "Robbery", "Burglary (breaking and entering)", "Shoplifting", "Car theft", "Pickpocketing",
+  "Vandalism", "Arson (Starting a fire)", "Trespassing", "Looting", "Kidnapping", "Assault",
+  "Battery", "Homicide (murder)", "Manslaughter", "Domestic violence", "Sexual assault",
+  "Child abuse", "Human trafficking", "Stalking", "Extortion", "Drug trafficking",
+  "Illegal possession of firearms", "Smuggling", "Hit and run", "Drunk driving (DUI)", "Rioting",
 ];
 
 function IncidentReporting({ user = null, onIncidentAdded }) {
@@ -51,9 +34,9 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
     address: "",
   });
   const [loading, setLoading] = useState(false);
-  const [watchId, setWatchId] = useState(null);
   const [useCustomTitle, setUseCustomTitle] = useState(false);
   const [reportAsGuest, setReportAsGuest] = useState(!user);
+  const [locationConfirmed, setLocationConfirmed] = useState(false);
 
   // Live timestamp
   useEffect(() => {
@@ -74,35 +57,6 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
     return () => clearInterval(interval);
   }, []);
 
-  // Automatic geolocation tracking
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    const id = navigator.geolocation.watchPosition(
-      async (pos) => {
-        const { latitude, longitude } = pos.coords;
-        let addr = "Coordinates only";
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
-          );
-          const data = await res.json();
-          addr = data.display_name || addr;
-        } catch (err) {
-          console.error("Reverse geocoding failed", err);
-        }
-        setIncident((prev) => ({
-          ...prev,
-          location: { latitude, longitude },
-          address: addr,
-        }));
-      },
-      (err) => console.error("Geolocation error:", err),
-      { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
-    );
-    setWatchId(id);
-    return () => navigator.geolocation.clearWatch(id);
-  }, []);
-
   const addIncident = () => {
     if (!incident.title || !incident.location) {
       alert("Please provide a title and location for the incident.");
@@ -115,7 +69,7 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
     };
     db.incidents.push(finalIncident);
     saveDB(db);
-    onIncidentAdded?.(finalIncident);
+    onIncidentAdded?.(finalIncident); // notify parent map
     setIncident({
       title: "",
       date: "",
@@ -129,8 +83,10 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
       address: "",
     });
     setUseCustomTitle(false);
+    setLocationConfirmed(false);
   };
 
+  // Image upload
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -156,28 +112,19 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
         <img src={IncidentReportingLogo} alt="Incident Reporting" style={{ height: "170px", objectFit: "contain" }} />
       </div>
 
-      {user ? (
-        <div style={{ textAlign: "center", marginBottom: "10px" }}>
-          <label style={{ marginRight: "10px" }}>
-            <input
-              type="radio"
-              checked={reportAsGuest}
-              onChange={() => setReportAsGuest(true)}
-            />
-            Report as Guest
-          </label>
+      {/* Guest/User toggle */}
+      <div style={{ textAlign: "center", marginBottom: "10px" }}>
+        <label style={{ marginRight: "10px" }}>
+          <input type="radio" checked={reportAsGuest} onChange={() => setReportAsGuest(true)} />
+          Report as Guest
+        </label>
+        {user && (
           <label>
-            <input
-              type="radio"
-              checked={!reportAsGuest}
-              onChange={() => setReportAsGuest(false)}
-            />
+            <input type="radio" checked={!reportAsGuest} onChange={() => setReportAsGuest(false)} />
             Report as {user.name}
           </label>
-        </div>
-      ) : (
-        <p style={{ textAlign: "center", marginBottom: "10px" }}>You are reporting as Guest</p>
-      )}
+        )}
+      </div>
 
       <p style={{ textAlign: "center", color: "#888", marginBottom: "10px" }}>
         You can report an incident. Guest details won’t be stored.
@@ -187,6 +134,7 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
         🕒 Live Time: {incident.timestamp}
       </p>
 
+      {/* Incident Title */}
       <div style={{ marginBottom: "10px" }}>
         {!useCustomTitle ? (
           <select
@@ -218,24 +166,22 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
         )}
       </div>
 
+      {/* Date Picker */}
       <div style={{ marginBottom: "10px" }}>
         <DatePicker
           selected={incident.date ? new Date(incident.date) : null}
-          onChange={(date) =>
-            setIncident({ ...incident, date: date ? date.toISOString().split("T")[0] : "" })
-          }
+          onChange={(date) => setIncident({ ...incident, date: date ? date.toISOString().split("T")[0] : "" })}
           dateFormat="dd/MM/yyyy"
           placeholderText="Select date dd/mm/yy"
           className="custom-input"
         />
       </div>
 
+      {/* Time Picker */}
       <div style={{ marginBottom: "10px" }}>
         <DatePicker
           selected={incident.timeISO ? new Date(incident.timeISO) : null}
-          onChange={(time) =>
-            setIncident({ ...incident, timeISO: time ? time.toISOString() : "" })
-          }
+          onChange={(time) => setIncident({ ...incident, timeISO: time ? time.toISOString() : "" })}
           showTimeSelect
           showTimeSelectOnly
           timeIntervals={5}
@@ -246,6 +192,7 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
         />
       </div>
 
+      {/* Description */}
       <textarea
         placeholder="Short Description"
         value={incident.description}
@@ -253,12 +200,38 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
         style={{ width: "95%", marginBottom: "10px", padding: "8px" }}
       />
 
+      {/* Image Upload */}
       <input type="file" onChange={handleFileChange} style={{ width: "100%", marginBottom: "10px" }} />
       {loading && <p>Uploading image...</p>}
       {incident.imageUrl && (
         <img src={incident.imageUrl} alt="Uploaded" style={{ width: "100px", marginBottom: "10px", borderRadius: "4px" }} />
       )}
 
+      {/* Map */}
+      <MapContainer
+        center={incident.location ? [incident.location.latitude, incident.location.longitude] : [9.0820, 8.6753]}
+        zoom={6}
+        style={{ height: "300px", width: "100%", marginBottom: "10px" }}
+      >
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <DraggableMarker
+          incident={incident}
+          setIncident={setIncident}
+          locationConfirmed={locationConfirmed}
+          setLocationConfirmed={setLocationConfirmed}
+        />
+      </MapContainer>
+
+      <button
+        type="button"
+        onClick={() => setLocationConfirmed(true)}
+        disabled={locationConfirmed || !incident.location}
+        style={{ width: "100%", padding: "10px", backgroundColor: "#066c4a", color: "#fff", border: "none", borderRadius: "5px", fontWeight: "bold", marginBottom: "10px" }}
+      >
+        Confirm Location 📍
+      </button>
+
+      {/* State & LGA */}
       <select
         value={incident.state}
         onChange={(e) => setIncident({ ...incident, state: e.target.value, lga: "" })}
@@ -283,10 +256,9 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
           ))}
       </select>
 
+      {/* Address Display */}
       <p style={{ fontStyle: "italic", color: "#444", marginBottom: "10px" }}>
-        {incident.location
-          ? `Live Location: ${incident.location.latitude.toFixed(6)}, ${incident.location.longitude.toFixed(6)} | ${incident.address}`
-          : "Fetching GPS..."}
+        {incident.address ? `Current Address: ${incident.address}` : "GPS not selected"}
       </p>
 
       <button
@@ -294,7 +266,7 @@ function IncidentReporting({ user = null, onIncidentAdded }) {
         onClick={addIncident}
         style={{ width: "100%", padding: "10px", backgroundColor: "#066c4a", color: "#fff", border: "none", borderRadius: "5px", fontWeight: "bold" }}
       >
-        Submit Incident 📩
+        Report Incident 📝
       </button>
     </div>
   );
