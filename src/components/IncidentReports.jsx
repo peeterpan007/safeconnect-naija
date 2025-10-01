@@ -1,121 +1,229 @@
-import React, { useState, useEffect } from "react";
-import IncidentMap from "./IncidentMap";
+import React, { useState } from "react";
+import { useIncidents } from "./IncidentContext";
 
-function IncidentReports({ user }) {
-  const [incidents, setIncidents] = useState([]);
+export default function IncidentReports({ user, guest }) {
+  const { addIncident } = useIncidents();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [state, setState] = useState("");
-  const [location, setLocation] = useState(null);
+  const [lga, setLga] = useState("");
   const [address, setAddress] = useState("");
+  const [location, setLocation] = useState(null);
 
-  // Get current location on component mount
-  useEffect(() => {
+  const [tracking, setTracking] = useState(false);
+  const [watchId, setWatchId] = useState(null);
+
+  // Start GPS tracking
+  const startTracking = () => {
     if (!navigator.geolocation) {
-      console.warn("Geolocation is not supported by this browser.");
+      alert("Geolocation not supported by your browser");
+      return;
+    }
+
+    const id = navigator.geolocation.watchPosition(
+      (pos) => {
+        setLocation({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        });
+      },
+      (err) => console.error(err),
+      { enableHighAccuracy: true }
+    );
+    setWatchId(id);
+    setTracking(true);
+  };
+
+  // Stop GPS tracking
+  const stopTracking = () => {
+    if (watchId) {
+      navigator.geolocation.clearWatch(watchId);
+      setWatchId(null);
+    }
+    setTracking(false);
+  };
+
+  // Reverse geocode coordinates → full address
+  const fetchAddress = async (lat, lng) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`
+      );
+      const data = await res.json();
+      if (data?.display_name) {
+        setAddress(data.display_name);
+      }
+    } catch (err) {
+      console.error("Error fetching address:", err);
+    }
+  };
+
+  const handleShareLocation = () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported");
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setLocation({ lat: latitude, lng: longitude });
-        setAddress(`${latitude.toFixed(5)},${longitude.toFixed(5)}`);
+        const coords = {
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        };
+        setLocation(coords);
+        fetchAddress(coords.latitude, coords.longitude);
       },
-      (err) => {
-        console.warn("Error getting location:", err.message);
-      }
+      (err) => console.error(err),
+      { enableHighAccuracy: true }
     );
-  }, []);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!title || !description || !state || !location) {
-      alert("Please fill in all fields including your location.");
+    if (!title || !location) {
+      alert("Please provide a title and location for the incident.");
       return;
     }
 
     const newIncident = {
+      id: Date.now().toString(),
       title,
       description,
       state,
-      location,
+      lga,
       address,
+      location,
+      user: guest ? "Anonymous" : user?.name || "Anonymous",
+      createdAt: new Date().toISOString(),
     };
 
-    setIncidents([newIncident, ...incidents]);
+    addIncident(newIncident);
+
+    // reset form
     setTitle("");
     setDescription("");
     setState("");
-    // Keep location for next submission
+    setLga("");
+    setAddress("");
+    setLocation(null);
+
     alert("Incident submitted successfully!");
   };
 
-  // Group incidents by state
-  const incidentsByState = incidents.reduce((acc, incident) => {
-    if (!acc[incident.state]) acc[incident.state] = [];
-    acc[incident.state].push(incident);
-    return acc;
-  }, {});
-
   return (
-    <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-      <h2>Report an Incident</h2>
-      <form onSubmit={handleSubmit}>
+    <div style={{ padding: "15px" }}>
+      <h2 style={{ textAlign: "center", color: "#066c4a" }}>
+        {guest ? "Report as Guest" : `Report as ${user?.name || "Anonymous"}`}
+      </h2>
+
+      <form onSubmit={handleSubmit} style={{ marginTop: "15px" }}>
         <input
           type="text"
-          placeholder="Title"
+          placeholder="Incident Title *"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          style={{ width: "100%", marginBottom: "10px" }}
+          required
+          style={inputStyle}
         />
         <textarea
-          placeholder="Description"
+          placeholder="Incident Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          style={{ width: "100%", marginBottom: "10px" }}
+          style={textareaStyle}
         />
         <input
           type="text"
           placeholder="State"
           value={state}
           onChange={(e) => setState(e.target.value)}
-          style={{ width: "100%", marginBottom: "10px" }}
+          style={inputStyle}
         />
         <input
           type="text"
-          placeholder="Your Location (auto-detected)"
-          value={address}
-          readOnly
-          style={{ width: "100%", marginBottom: "10px", backgroundColor: "#f0f0f0" }}
+          placeholder="LGA"
+          value={lga}
+          onChange={(e) => setLga(e.target.value)}
+          style={inputStyle}
         />
-        <button type="submit">Submit Incident</button>
+        <input
+          type="text"
+          placeholder="Address (auto-filled if you share location)"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          style={inputStyle}
+        />
+
+        {/* Location & GPS Controls */}
+        <div style={{ marginTop: "10px" }}>
+          <button
+            type="button"
+            onClick={handleShareLocation}
+            style={{ ...buttonStyle, backgroundColor: "#066c4a", color: "white" }}
+          >
+            Share My Location
+          </button>
+          {!tracking ? (
+            <button
+              type="button"
+              onClick={startTracking}
+              style={{ ...buttonStyle, backgroundColor: "green", color: "white" }}
+            >
+              Start GPS
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={stopTracking}
+              style={{ ...buttonStyle, backgroundColor: "red", color: "white" }}
+            >
+              Stop GPS
+            </button>
+          )}
+        </div>
+
+        {location && (
+          <p style={{ marginTop: "10px", fontSize: "14px", color: "#333" }}>
+            📍 Location set: {location.latitude.toFixed(5)},{" "}
+            {location.longitude.toFixed(5)}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          style={{
+            ...buttonStyle,
+            backgroundColor: "#066c4a",
+            color: "white",
+            marginTop: "15px",
+          }}
+        >
+          Submit Incident
+        </button>
       </form>
-
-      {/* Map showing all incidents */}
-      {incidents.length > 0 && (
-        <div style={{ marginTop: "20px" }}>
-          <h3>Incident Map</h3>
-          <IncidentMap incidents={incidents} height="400px" />
-        </div>
-      )}
-
-      {/* List of incidents grouped by state */}
-      {Object.keys(incidentsByState).map((stateName) => (
-        <div key={stateName} style={{ marginTop: "20px" }}>
-          <h3>{stateName}</h3>
-          <ul>
-            {incidentsByState[stateName].map((incident, idx) => (
-              <li key={idx}>
-                <strong>{incident.title}</strong>: {incident.description} ({incident.address})
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
     </div>
   );
 }
 
-export default IncidentReports;
+// Inline styles
+const inputStyle = {
+  width: "100%",
+  padding: "10px",
+  marginBottom: "10px",
+  borderRadius: "5px",
+  border: "1px solid #ccc",
+};
+
+const textareaStyle = {
+  ...inputStyle,
+  minHeight: "80px",
+};
+
+const buttonStyle = {
+  padding: "10px 15px",
+  borderRadius: "5px",
+  border: "none",
+  cursor: "pointer",
+  marginRight: "10px",
+};

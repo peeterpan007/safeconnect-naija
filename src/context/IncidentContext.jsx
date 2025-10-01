@@ -1,10 +1,8 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useContext, useState } from "react";
 
-// Create context
 const IncidentContext = createContext();
 
-// Provider
-export const IncidentProvider = ({ children }) => {
+export function IncidentProvider({ children }) {
   const [incidents, setIncidents] = useState([]);
 
   const addIncident = (incident) => {
@@ -16,7 +14,8 @@ export const IncidentProvider = ({ children }) => {
       {children}
     </IncidentContext.Provider>
   );
-};
+}
 
-// Custom hook for easy access
-export const useIncidents = () => useContext(IncidentContext);
+export function useIncidents() {
+  return useContext(IncidentContext);
+}
