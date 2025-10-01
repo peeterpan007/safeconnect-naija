@@ -26,6 +26,7 @@ import SignUp from "./components/SignUp";
 import PhoneLogin from "./components/PhoneLogin";
 
 import { UserProvider, useUser } from "./components/UserContext";
+import { IncidentProvider } from "./components/IncidentContext";   // ✅ NEW
 
 // Splash component
 function Splash({ onFinish }) {
@@ -213,11 +214,13 @@ function AppContent() {
   );
 }
 
-// Wrap App in UserProvider
+// ✅ Wrap in BOTH providers
 function App() {
   return (
     <UserProvider>
-      <AppContent />
+      <IncidentProvider>
+        <AppContent />
+      </IncidentProvider>
     </UserProvider>
   );
 }
