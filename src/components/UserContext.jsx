@@ -1,30 +1,37 @@
-import React, { createContext, useContext, useState } from "react";
+// src/components/UserContext.jsx
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // stores user info
-  const [guest, setGuest] = useState(false);
+  const [user, setUser] = useState(null); // { name, email, uid, guest }
 
-  // login after Google/Facebook/Phone/SignUp
+  // Load from localStorage
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("safeConnectUser");
+      if (raw) setUser(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (user) localStorage.setItem("safeConnectUser", JSON.stringify(user));
+    else localStorage.removeItem("safeConnectUser");
+  }, [user]);
+
   const login = (userData) => {
-    setUser(userData);
-    setGuest(false);
+    // userData: { name, email, uid } — add guest:false
+    setUser({ ...userData, guest: false });
   };
 
-  // guest access
   const continueAsGuest = () => {
-    setUser({ name: "Guest" }); // minimal guest object
-    setGuest(true);
+    setUser({ name: "Guest", guest: true });
   };
 
-  const logout = () => {
-    setUser(null);
-    setGuest(false);
-  };
+  const logout = () => setUser(null);
 
   return (
-    <UserContext.Provider value={{ user, guest, login, continueAsGuest, logout }}>
+    <UserContext.Provider value={{ user, login, logout, continueAsGuest }}>
       {children}
     </UserContext.Provider>
   );

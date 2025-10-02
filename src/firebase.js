@@ -1,32 +1,46 @@
-// Import the functions you need from the SDKs you need
+// Import Firebase SDK
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 import { 
   getAuth, 
   GoogleAuthProvider, 
-  FacebookAuthProvider 
+  FacebookAuthProvider, 
+  RecaptchaVerifier, 
+  signInWithPhoneNumber 
 } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
-// Your web app's Firebase configuration
+// 🔑 Firebase configuration (replace with your actual Firebase keys if not using .env)
 const firebaseConfig = {
   apiKey: "AIzaSyAN4rkr84ZTDiZzXrguNfatyU2H9Icjoyc", 
   authDomain: "safeconnectnaija.firebaseapp.com", 
   projectId: "safeconnectnaija",
-  storageBucket: "safeconnectnaija.firebasestorage.app",
-  messagingSenderId: "551611887104", 
-  appId: "1:551611887104:web:42da44534f3c616febf2e5", 
-  measurementId: "G-D75MKP0WC4"
+  storageBucket: "safeconnectnaija.appspot.com",   // ✅ fixed: must end with .appspot.com
+  messagingSenderId: "551611887104",  
+  appId: "1:551611887104:web:42da44534f3c616febf2e5",  
+  measurementId: "G-D75MKP0WC4" 
 };
 
-// Initialize Firebase
+// ✅ Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 
-// Initialize Firebase Authentication
+// ✅ Firebase Services
 const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-// ✅ Add and export providers
+// ✅ Providers (Google, Facebook, Phone)
 const googleProvider = new GoogleAuthProvider();
 const facebookProvider = new FacebookAuthProvider();
 
-export { app, analytics, auth, googleProvider, facebookProvider };
+// ✅ Exports (auth, db, storage, providers, and phone utils)
+export { 
+  app, 
+  auth, 
+  db, 
+  storage, 
+  googleProvider, 
+  facebookProvider, 
+  RecaptchaVerifier, 
+  signInWithPhoneNumber 
+};

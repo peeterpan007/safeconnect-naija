@@ -1,81 +1,100 @@
+// src/components/Login.jsx
 import React, { useState } from "react";
 import { auth, googleProvider, facebookProvider } from "../firebase";
-import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
+import {
+  signInWithPopup,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import { useUser } from "./UserContext";
 
-function Login({ onLogin }) {
+/**
+ * Props:
+ *  - onLogin?: optional callback (userData) => {} — App may pass this to set local UI state
+ *
+ * This component uses Firebase Auth for Google/Facebook and email/password. It will call
+ * context.login(userData) if available, and also call onLogin prop if provided.
+ */
+export default function Login({ onLogin }) {
+  const { login } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  // Email/password
+  const handleEmailLogin = async (e) => {
+    e?.preventDefault();
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      onLogin?.({ email: user.email, name: user.displayName || "User" });
-    } catch (error) {
-      console.error(error);
-      alert("Login failed. Please check your credentials.");
-    } finally {
-      setLoading(false);
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const user = cred.user;
+      const userData = { name: user.displayName || user.email, email: user.email, uid: user.uid };
+      login?.(userData);
+      onLogin?.(userData);
+    } catch (err) {
+      console.error(err);
+      alert("Email login failed. Check credentials.");
     }
   };
 
-  const handleSocialLogin = async (provider, type) => {
-    setLoading(true);
+  // Google
+  const handleGoogle = async () => {
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      onLogin?.({ email: user.email, name: user.displayName });
-    } catch (error) {
-      console.error(error);
-      alert(`${type} login failed.`);
-    } finally {
-      setLoading(false);
+      const res = await signInWithPopup(auth, googleProvider);
+      const u = res.user;
+      const userData = { name: u.displayName || u.email, email: u.email, uid: u.uid };
+      login?.(userData);
+      onLogin?.(userData);
+    } catch (err) {
+      console.error(err);
+      alert("Google sign-in failed. Check Firebase console and provider settings.");
+    }
+  };
+
+  // Facebook
+  const handleFacebook = async () => {
+    try {
+      const res = await signInWithPopup(auth, facebookProvider);
+      const u = res.user;
+      const userData = { name: u.displayName || u.email, email: u.email, uid: u.uid };
+      login?.(userData);
+      onLogin?.(userData);
+    } catch (err) {
+      console.error(err);
+      alert("Facebook sign-in failed. Check Facebook app and Firebase settings.");
     }
   };
 
   return (
-    <div className="auth-form">
-      <form onSubmit={handleSubmit}>
+    <div style={{ maxWidth: 420, margin: "0 auto" }}>
+      <form onSubmit={handleEmailLogin} style={{ display: "grid", gap: 8 }}>
         <input
-          type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          type="email"
           required
+          style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc" }}
         />
         <input
-          type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          type="password"
           required
+          style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc" }}
         />
-        <button type="submit" disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
+        <button type="submit" style={{ padding: 10, background: "#066c4a", color: "#fff", border: "none", borderRadius: 6 }}>
+          Log in
         </button>
       </form>
 
-      <hr />
+      <hr style={{ margin: "12px 0" }} />
 
-      <button
-        onClick={() => handleSocialLogin(googleProvider, "Google")}
-        className="google-btn"
-        disabled={loading}
-      >
+      <button onClick={handleGoogle} style={{ width: "100%", padding: 10, background: "#db4437", color: "#fff", border: "none", borderRadius: 6 }}>
         Continue with Google
       </button>
-      <button
-        onClick={() => handleSocialLogin(facebookProvider, "Facebook")}
-        className="facebook-btn"
-        disabled={loading}
-      >
+
+      <button onClick={handleFacebook} style={{ width: "100%", marginTop: 8, padding: 10, background: "#3b5998", color: "#fff", border: "none", borderRadius: 6 }}>
         Continue with Facebook
       </button>
     </div>
   );
 }
-
-export default Login;

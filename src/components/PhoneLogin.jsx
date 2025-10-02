@@ -1,59 +1,91 @@
-import React, { useState } from "react";
+// src/components/PhoneLogin.jsx
+import React, { useEffect, useRef, useState } from "react";
+import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { auth } from "../firebase";
+import { useUser } from "./UserContext";
 
-function PhoneLogin({ onVerify }) {
+/**
+ * PhoneLogin:
+ * Props:
+ *  - onVerify?: optional callback(userData)
+ *
+ * NOTE: For phone sign-in to work on web:
+ *  - You must enable Phone sign-in in Firebase Console.
+ *  - You must configure Authorized domains (your domain).
+ *  - Firebase will need reCAPTCHA (this component creates an invisible reCAPTCHA).
+ */
+export default function PhoneLogin({ onVerify }) {
+  const { login } = useUser();
   const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [step, setStep] = useState(1); // Step 1 = enter phone, Step 2 = enter OTP
-  const [generatedOtp, setGeneratedOtp] = useState("");
+  const [code, setCode] = useState("");
+  const confirmationRef = useRef(null);
+  const recaptchaRef = useRef(false);
+  const [stage, setStage] = useState("inputPhone"); // inputPhone -> inputCode
 
-  const handleSendOtp = () => {
-    if (!phone.match(/^\d{10,15}$/)) {
-      alert("Enter a valid phone number");
-      return;
+  useEffect(() => {
+    // Ensure recaptcha is available
+    if (!recaptchaRef.current) {
+      window.recaptchaVerifier = new RecaptchaVerifier(
+        "recaptcha-container",
+        { size: "invisible" },
+        auth
+      );
+      recaptchaRef.current = true;
     }
-    // Mock OTP generation
-    const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedOtp(newOtp);
-    setStep(2);
-    console.log(`OTP for ${phone}: ${newOtp}`); // For testing only
-    alert(`Mock OTP sent to ${phone}: ${newOtp}`);
+    // cleanup: don't remove recaptcha on unmount; firebase handles it
+  }, []);
+
+  const sendCode = async () => {
+    try {
+      const appVerifier = window.recaptchaVerifier;
+      const confirmation = await signInWithPhoneNumber(auth, phone, appVerifier);
+      confirmationRef.current = confirmation;
+      setStage("inputCode");
+      alert("OTP sent to phone. Enter the code.");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to send OTP. Make sure the phone number is in E.164 format (e.g. +2348012345678) and phone auth is enabled.");
+    }
   };
 
-  const handleVerifyOtp = () => {
-    if (otp === generatedOtp) {
-      onVerify({ id: phone, name: `User ${phone}`, phone });
-    } else {
-      alert("Incorrect OTP, try again.");
+  const verifyCode = async () => {
+    try {
+      const confirmation = confirmationRef.current;
+      if (!confirmation) {
+        alert("No confirmation object found. Request a new OTP.");
+        return;
+      }
+      const res = await confirmation.confirm(code);
+      const u = res.user;
+      const userData = { name: u.displayName || u.phoneNumber, email: u.email || null, uid: u.uid };
+      login?.(userData);
+      onVerify?.(userData);
+    } catch (err) {
+      console.error(err);
+      alert("Invalid code or verification failed.");
     }
   };
 
   return (
-    <div className="phone-login">
-      {step === 1 && (
-        <div>
-          <input
-            type="tel"
-            placeholder="Enter phone number"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
-          <button onClick={handleSendOtp}>Send OTP</button>
-        </div>
+    <div style={{ maxWidth: 420, margin: "0 auto", display: "grid", gap: 8 }}>
+      <div id="recaptcha-container" />
+
+      {stage === "inputPhone" && (
+        <>
+          <input placeholder="+2348012345678" value={phone} onChange={(e) => setPhone(e.target.value)} style={sharedInput} />
+          <button onClick={sendCode} style={btnPrimary}>Send OTP</button>
+        </>
       )}
 
-      {step === 2 && (
-        <div>
-          <input
-            type="text"
-            placeholder="Enter OTP"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-          />
-          <button onClick={handleVerifyOtp}>Verify OTP</button>
-        </div>
+      {stage === "inputCode" && (
+        <>
+          <input placeholder="Enter OTP code" value={code} onChange={(e) => setCode(e.target.value)} style={sharedInput} />
+          <button onClick={verifyCode} style={btnPrimary}>Verify code</button>
+        </>
       )}
     </div>
   );
 }
 
-export default PhoneLogin;
+const sharedInput = { padding: 8, borderRadius: 6, border: "1px solid #ccc" };
+const btnPrimary = { padding: 10, background: "#066c4a", color: "#fff", border: "none", borderRadius: 6 };

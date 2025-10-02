@@ -1,96 +1,34 @@
-import React, { useState, useEffect } from "react";
-import { db, saveDB } from "../db";
-import { statesAndLGAs } from "../data/statesAndLGAs";
+// src/components/IncidentReports.jsx
+import React, { useEffect, useState } from "react";
+import { useIncidents } from "./IncidentContext";
+import { useUser } from "./UserContext";
+import { statesAndLGAs } from "../data/statesAndLGAs"; // keep your existing states/LGAs file if present
 
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+// Fix Leaflet icon references if you import leaflet elsewhere (kept out of this file intentionally)
 
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+export default function IncidentReports({ guest = false }) {
+  const { addIncident } = useIncidents();
+  const { user } = useUser();
 
-import IncidentReportingLogo from "../assets/IncidentReporting.png";
-
-const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dohv7zysm/upload";
-const UPLOAD_PRESET = "your_upload_preset";
-
-// Fix Leaflet marker icons
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl:
-    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
-
-const INCIDENT_TITLES = [
-  "Robbery",
-  "Burglary (breaking and entering)",
-  "Shoplifting",
-  "Car theft",
-  "Pickpocketing",
-  "Vandalism",
-  "Arson (Starting a fire)",
-  "Trespassing",
-  "Looting",
-  "Kidnapping",
-  "Assault",
-  "Battery",
-  "Homicide (murder)",
-  "Manslaughter",
-  "Domestic violence",
-  "Sexual assault",
-  "Child abuse",
-  "Human trafficking",
-  "Stalking",
-  "Extortion",
-  "Drug trafficking",
-  "Illegal possession of firearms",
-  "Smuggling",
-  "Hit and run",
-  "Drunk driving (DUI)",
-  "Rioting",
-];
-
-function IncidentReports({ user }) {
-  const [incident, setIncident] = useState({
-    title: "",
-    date: "",
-    timeISO: "",
-    timestamp: "",
-    description: "",
-    imageUrl: "",
-    state: "",
-    lga: "",
-    location: null,
-    address: "",
-  });
-
-  const [loading, setLoading] = useState(false);
+  // Form state
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [stateName, setStateName] = useState("");
+  const [lga, setLga] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [location, setLocation] = useState(null); // { latitude, longitude }
+  const [address, setAddress] = useState("");
   const [watchId, setWatchId] = useState(null);
-  const [useCustomTitle, setUseCustomTitle] = useState(false);
+  const [loadingUpload, setLoadingUpload] = useState(false);
 
-  // Live timestamp (always updating)
+  // Live timestamp
+  const [timestamp, setTimestamp] = useState("");
   useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      const iso = now.toISOString();
-      const formatted = now.toLocaleString("en-GB", {
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
-      });
-      setIncident((prev) => ({ ...prev, timeISO: iso, timestamp: formatted }));
-    }, 1000);
-    return () => clearInterval(interval);
+    const t = setInterval(() => setTimestamp(new Date().toLocaleString()), 1000);
+    return () => clearInterval(t);
   }, []);
 
+  // Start watching (live)
   const startTracking = () => {
     if (!navigator.geolocation) {
       alert("Geolocation not supported");
@@ -99,30 +37,13 @@ function IncidentReports({ user }) {
     const id = navigator.geolocation.watchPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
-          );
-          const data = await res.json();
-          const addr = data.display_name || "Unknown location";
-          setIncident((prev) => ({
-            ...prev,
-            location: { latitude, longitude },
-            address: addr,
-          }));
-        } catch {
-          setIncident((prev) => ({
-            ...prev,
-            location: { latitude, longitude },
-            address: "Coordinates only",
-          }));
-        }
+        setLocation({ latitude, longitude });
       },
       (err) => {
         console.error(err);
-        alert("Could not fetch location. Enable GPS.");
+        alert("Could not get location. Check device permissions.");
       },
-      { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
     );
     setWatchId(id);
   };
@@ -134,171 +55,139 @@ function IncidentReports({ user }) {
     }
   };
 
-  const addIncident = () => {
-    const finalIncident = { id: Date.now().toString(), ...incident };
-    db.incidents.push(finalIncident);
-    saveDB(db);
-    setIncident({
-      title: "",
-      date: "",
-      timeISO: "",
-      timestamp: "",
-      description: "",
-      imageUrl: "",
-      state: "",
-      lga: "",
-      location: null,
-      address: "",
-    });
-    setUseCustomTitle(false);
-    stopTracking();
+  // Share location once and reverse-geocode via Nominatim (OpenStreetMap)
+  const shareLocationOnce = async () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation not supported");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setLocation({ latitude, longitude });
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+          const data = await res.json();
+          setAddress(data.display_name || `${latitude.toFixed(5)},${longitude.toFixed(5)}`);
+        } catch (err) {
+          console.warn("reverse geocode failed", err);
+          setAddress(`${latitude.toFixed(5)}, ${longitude.toFixed(5)}`);
+        }
+      },
+      (err) => {
+        console.error(err);
+        alert("Could not fetch location. Allow location permission.");
+      },
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 10000 }
+    );
   };
+
+  // Optional image upload: If you want to upload to Cloudinary, fill CLOUDINARY_URL/UPLOAD_PRESET env or skip
+  const CLOUDINARY_URL = import.meta.env.VITE_CLOUDINARY_URL || "";
+  const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_PRESET || "";
 
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setLoading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("upload_preset", UPLOAD_PRESET);
+    if (!CLOUDINARY_URL || !UPLOAD_PRESET) {
+      // If not configured, just create a local URL preview
+      setImageUrl(URL.createObjectURL(file));
+      return;
+    }
+    setLoadingUpload(true);
     try {
-      const res = await fetch(CLOUDINARY_URL, { method: "POST", body: formData });
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("upload_preset", UPLOAD_PRESET);
+      const res = await fetch(CLOUDINARY_URL, { method: "POST", body: fd });
       const data = await res.json();
-      setIncident((prev) => ({ ...prev, imageUrl: data.secure_url }));
+      setImageUrl(data.secure_url);
     } catch (err) {
       console.error(err);
-      alert("Upload failed!");
+      alert("Upload failed");
     } finally {
-      setLoading(false);
+      setLoadingUpload(false);
     }
   };
 
+  // Add incident: **will allow submit regardless of all fields being complete** per your request.
+  const handleAddIncident = () => {
+    const finalIncident = {
+      id: Date.now().toString(),
+      title: title || "Untitled",
+      description: description || "",
+      state: stateName || "",
+      lga: lga || "",
+      imageUrl: imageUrl || "",
+      location: location || null,
+      address: address || "",
+      user: user?.guest ? "Guest" : user?.name || (guest ? "Guest" : "Anonymous"),
+      createdAt: new Date().toISOString(),
+    };
+    addIncident(finalIncident);
+
+    // Reset most fields, but keep location if you want; here we reset everything
+    setTitle("");
+    setDescription("");
+    setStateName("");
+    setLga("");
+    setImageUrl("");
+    setLocation(null);
+    setAddress("");
+    stopTracking();
+    alert("Incident submitted — thank you!");
+  };
+
+  // Populate LGAs if statesAndLGAs is available (otherwise ignore)
+  const lgasForState = stateName && statesAndLGAs && statesAndLGAs[stateName] ? statesAndLGAs[stateName] : [];
+
   return (
-    <div style={{ marginBottom: "20px", padding: "15px", background: "#fff", borderRadius: "8px", boxShadow: "0 2px 6px rgba(0,0,0,0.1)" }}>
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: "15px" }}>
-        <img src={IncidentReportingLogo} alt="Incident Reporting" style={{ height: "170px", objectFit: "contain" }} />
+    <div style={{ margin: "12px", padding: 12, background: "#fff", borderRadius: 8 }}>
+      <div style={{ textAlign: "center", marginBottom: 8 }}>
+        <h3 style={{ margin: 0, color: "#066c4a" }}>{guest ? "Report as Guest" : `Report incident (${user?.name || "You"})`}</h3>
+        <small style={{ color: "#666" }}>Live time: {timestamp}</small>
       </div>
 
-      {/* Live timestamp */}
-      <p style={{ textAlign: "center", fontWeight: "bold", color: "#555", marginBottom: "15px" }}>
-        🕒 Live Time: {incident.timestamp}
-      </p>
+      <div style={{ display: "grid", gap: 8 }}>
+        <input placeholder="Title (optional)" value={title} onChange={(e) => setTitle(e.target.value)} style={inputStyle} />
+        <textarea placeholder="Short description (optional)" value={description} onChange={(e) => setDescription(e.target.value)} style={{ ...inputStyle, minHeight: 80 }} />
 
-      {/* Incident Title */}
-      <div style={{ marginBottom: "10px" }}>
-        {!useCustomTitle ? (
-          <select
-            value={incident.title}
-            onChange={(e) => {
-              if (e.target.value === "Other") {
-                setIncident({ ...incident, title: "" });
-                setUseCustomTitle(true);
-              } else {
-                setIncident({ ...incident, title: e.target.value });
-              }
-            }}
-            style={{ width: "100%", padding: "8px" }}
-          >
-            <option value="">Select Incident Title</option>
-            {INCIDENT_TITLES.map((title) => (
-              <option key={title} value={title}>{title}</option>
-            ))}
-            <option value="Other">Other (type below)</option>
+        <div style={{ display: "flex", gap: 8 }}>
+          <select value={stateName} onChange={(e) => { setStateName(e.target.value); setLga(""); }} style={{ flex: 1, padding: 8 }}>
+            <option value="">Select State (optional)</option>
+            {statesAndLGAs ? Object.keys(statesAndLGAs).map((s) => <option key={s} value={s}>{s}</option>) : null}
           </select>
-        ) : (
-          <input
-            type="text"
-            placeholder="Enter custom incident title"
-            value={incident.title}
-            onChange={(e) => setIncident({ ...incident, title: e.target.value })}
-            style={{ width: "100%", padding: "8px" }}
-          />
-        )}
+          <select value={lga} onChange={(e) => setLga(e.target.value)} disabled={!stateName} style={{ flex: 1, padding: 8 }}>
+            <option value="">Select LGA (optional)</option>
+            {lgasForState.map((x) => <option key={x} value={x}>{x}</option>)}
+          </select>
+        </div>
+
+        <input type="file" onChange={handleFileChange} />
+
+        {loadingUpload && <small>Uploading image…</small>}
+        {imageUrl && <img src={imageUrl} alt="preview" style={{ width: 84, borderRadius: 6 }} />}
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={shareLocationOnce} style={{ ...gpsBtn, background: "#066c4a" }}>Share Location</button>
+          {!watchId ? (
+            <button onClick={startTracking} style={{ ...gpsBtn, background: "green" }}>Start GPS</button>
+          ) : (
+            <button onClick={stopTracking} style={{ ...gpsBtn, background: "red" }}>Stop GPS</button>
+          )}
+        </div>
+
+        <p style={{ fontStyle: "italic", color: "#444" }}>{address ? `Address: ${address}` : (location ? `Coordinates: ${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}` : "Location not set")}</p>
+
+        <div style={{ textAlign: "center" }}>
+          <button onClick={handleAddIncident} style={{ padding: "10px 18px", background: "#066c4a", color: "#fff", borderRadius: 6 }}>
+            Add Incident
+          </button>
+        </div>
       </div>
-
-      {/* Date Picker */}
-      <div style={{ marginBottom: "10px" }}>
-        <DatePicker
-          selected={incident.date ? new Date(incident.date) : null}
-          onChange={(date) =>
-            setIncident({ ...incident, date: date ? date.toISOString().split("T")[0] : "" })
-          }
-          dateFormat="dd/MM/yyyy"
-          placeholderText="Select date dd/mm/yy"
-          className="custom-input"
-        />
-      </div>
-
-      {/* Time Picker */}
-      <div style={{ marginBottom: "10px" }}>
-        <DatePicker
-          selected={incident.timeISO ? new Date(incident.timeISO) : null}
-          onChange={(time) =>
-            setIncident({ ...incident, timeISO: time ? time.toISOString() : "" })
-          }
-          showTimeSelect
-          showTimeSelectOnly
-          timeIntervals={5}
-          timeCaption="Time"
-          dateFormat="HH:mm"
-          placeholderText="Select time hh:mm"
-          className="custom-input"
-        />
-      </div>
-
-      {/* Description */}
-      <textarea
-        placeholder="Short Description"
-        value={incident.description}
-        onChange={(e) => setIncident({ ...incident, description: e.target.value })}
-        style={{ width: "95%", marginBottom: "10px", padding: "8px" }}
-      />
-
-      {/* Image Upload */}
-      <input type="file" onChange={handleFileChange} style={{ width: "100%", marginBottom: "10px" }} />
-      {loading && <p>Uploading image...</p>}
-      {incident.imageUrl && <img src={incident.imageUrl} alt="Uploaded" style={{ width: "100px", marginBottom: "10px", borderRadius: "4px" }} />}
-
-      {/* GPS Buttons */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
-        <button type="button" onClick={startTracking} style={{ flex: 1, padding: "10px", backgroundColor: "#066c4a", color: "#fff", border: "none", borderRadius: "5px" }}>
-          Start Live Location 🌍
-        </button>
-        <button type="button" onClick={stopTracking} style={{ flex: 1, padding: "10px", backgroundColor: "#b70909", color: "#fff", border: "none", borderRadius: "5px" }}>
-          Stop Tracking ⏹️
-        </button>
-      </div>
-
-      {/* Map */}
-      {incident.location && (
-        <MapContainer center={[incident.location.latitude, incident.location.longitude]} zoom={15} style={{ height: "200px", width: "100%", marginBottom: "10px" }}>
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <Marker position={[incident.location.latitude, incident.location.longitude]}>
-            <Popup>{incident.title || "Incident Location"}</Popup>
-          </Marker>
-        </MapContainer>
-      )}
-
-      {/* State & LGA */}
-      <select value={incident.state} onChange={(e) => setIncident({ ...incident, state: e.target.value, lga: "" })} style={{ width: "100%", marginBottom: "10px", padding: "8px" }}>
-        <option value="">Select State</option>
-        {Object.keys(statesAndLGAs).map((state) => (
-          <option key={state} value={state}>{state}</option>
-        ))}
-      </select>
-
-      <select value={incident.lga} onChange={(e) => setIncident({ ...incident, lga: e.target.value })} disabled={!incident.state} style={{ width: "100%", marginBottom: "10px", padding: "8px" }}>
-        <option value="">Select LGA</option>
-        {incident.state && statesAndLGAs[incident.state].map((lga) => (
-          <option key={lga} value={lga}>{lga}</option>
-        ))}
-      </select>
-
-      <button onClick={addIncident} style={{ width: "100%", padding: "10px", backgroundColor: "#006400", color: "#fff", fontWeight: "bold", border: "none", borderRadius: "5px" }}>
-        Add Incident
-      </button>
     </div>
   );
 }
 
-export default IncidentReports;
+const inputStyle = { padding: 8, borderRadius: 6, border: "1px solid #ddd", width: "100%" };
+const gpsBtn = { flex: 1, padding: "10px", color: "#fff", border: "none", borderRadius: 6, cursor: "pointer" };
