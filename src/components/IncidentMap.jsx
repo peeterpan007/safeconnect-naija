@@ -3,9 +3,9 @@ import React, { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { useIncident } from "./IncidentContext"; // ✅ Fixed import name
+import { useIncidents } from "./IncidentContext";
 
-// Fix Leaflet default icon URLs (important for production)
+// Fix Leaflet default icon URLs
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
@@ -16,32 +16,40 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
+// Component to automatically fit map bounds to all incidents
 function FitBounds({ incidents }) {
   const map = useMap();
+
   useEffect(() => {
     const points = incidents
-      .filter((i) => i.location && typeof i.location.latitude === "number")
+      .filter(
+        (i) =>
+          i.location &&
+          typeof i.location.latitude === "number" &&
+          typeof i.location.longitude === "number"
+      )
       .map((i) => [i.location.latitude, i.location.longitude]);
 
-    if (points.length === 0) return;
-
-    try {
-      map.fitBounds(points, { padding: [50, 50] });
-    } catch (err) {
-      // ignore
+    if (points.length > 0) {
+      try {
+        map.fitBounds(points, { padding: [50, 50] });
+      } catch (err) {
+        // silently fail
+      }
     }
   }, [incidents, map]);
+
   return null;
 }
 
 export default function IncidentMap() {
-  const { incidents } = useIncident(); // ✅ fixed usage
+  const { incidents } = useIncidents();
 
-  // group by state
+  // Group incidents by state for display below map
   const grouped = incidents.reduce((acc, inc) => {
-    const s = inc.state || "Unknown";
-    if (!acc[s]) acc[s] = [];
-    acc[s].push(inc);
+    const state = inc.state || "Unknown";
+    if (!acc[state]) acc[state] = [];
+    acc[state].push(inc);
     return acc;
   }, {});
 
@@ -50,17 +58,27 @@ export default function IncidentMap() {
       <h3 style={{ color: "#066c4a" }}>Incident Map</h3>
 
       <div style={{ height: 400, marginBottom: 12 }}>
-        <MapContainer center={[9.082, 8.6753]} zoom={6} style={{ height: "100%", width: "100%" }}>
+        <MapContainer
+          center={[9.082, 8.6753]}
+          zoom={6}
+          style={{ height: "100%", width: "100%" }}
+        >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <FitBounds incidents={incidents} />
 
           {incidents.map((inc) =>
             inc.location ? (
-              <Marker key={inc.id} position={[inc.location.latitude, inc.location.longitude]}>
+              <Marker
+                key={inc.id}
+                position={[inc.location.latitude, inc.location.longitude]}
+              >
                 <Popup>
-                  <strong>{inc.title}</strong><br />
-                  {inc.description || "No description"}<br />
-                  {inc.address && <small>{inc.address}</small>}<br />
+                  <strong>{inc.title}</strong>
+                  <br />
+                  {inc.description || "No description"}
+                  <br />
+                  {inc.address && <small>{inc.address}</small>}
+                  <br />
                   <em>By: {inc.user}</em>
                 </Popup>
               </Marker>
@@ -73,10 +91,10 @@ export default function IncidentMap() {
       {Object.keys(grouped).length === 0 ? (
         <p>No incidents reported yet.</p>
       ) : (
-        Object.entries(grouped).map(([st, arr]) => (
-          <div key={st} style={{ marginBottom: 12 }}>
+        Object.entries(grouped).map(([state, arr]) => (
+          <div key={state} style={{ marginBottom: 12 }}>
             <h5 style={{ margin: "6px 0" }}>
-              {st} ({arr.length})
+              {state} ({arr.length})
             </h5>
             <ul>
               {arr.map((i) => (
@@ -86,7 +104,9 @@ export default function IncidentMap() {
                   <small>
                     {i.address ||
                       (i.location
-                        ? `${i.location.latitude.toFixed(5)}, ${i.location.longitude.toFixed(5)}`
+                        ? `${i.location.latitude.toFixed(
+                            5
+                          )}, ${i.location.longitude.toFixed(5)}`
                         : "No location")}
                   </small>
                 </li>

@@ -4,7 +4,6 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { useIncidents } from "./IncidentContext";
 import IncidentIcon from "../assets/IncidentReporting.png";
 import "leaflet/dist/leaflet.css";
-import "./IncidentReports.css";
 
 // Example state/LGA data
 const STATES_LGAS = {
@@ -91,19 +90,32 @@ export default function IncidentReports({ guest = false }) {
   };
 
   return (
-    <div className="incident-report-container">
-      <h3>
-        <img src={IncidentIcon} alt="Incident Reporting" />
+    <div style={{ padding: 12, fontFamily: "Arial, sans-serif" }}>
+      <h3 style={{ display: "flex", alignItems: "center", color: "#066c4a" }}>
+        <img
+          src={IncidentIcon}
+          alt="Incident Reporting"
+          style={{ width: 32, marginRight: 8 }}
+        />
         Incident Reporting
       </h3>
 
       {/* Tabs */}
-      <div className="tabs">
+      <div style={{ display: "flex", marginTop: 12, marginBottom: 16 }}>
         {TABS.map((tab) => (
           <button
             key={tab}
-            className={activeTab === tab ? "active-tab" : ""}
             onClick={() => setActiveTab(tab)}
+            style={{
+              flex: 1,
+              padding: 8,
+              marginRight: 4,
+              backgroundColor: activeTab === tab ? "#27ae60" : "#ecf0f1",
+              color: activeTab === tab ? "#fff" : "#000",
+              border: "none",
+              borderRadius: 6,
+              cursor: "pointer",
+            }}
           >
             {tab}
           </button>
@@ -112,12 +124,16 @@ export default function IncidentReports({ guest = false }) {
 
       {/* Tab Content */}
       {activeTab === "Report Incident" && (
-        <form className="incident-form" onSubmit={handleSubmit}>
-          {error && <p className="error-message">{error}</p>}
+        <form onSubmit={handleSubmit} style={{ marginBottom: 16 }}>
+          {error && <p style={{ color: "red" }}>{error}</p>}
 
           <label>
             Title <span style={{ color: "red" }}>*</span>
-            <select value={title} onChange={(e) => setTitle(e.target.value)} required>
+            <select
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            >
               <option value="">Select Title</option>
               {TITLES.map((t) => (
                 <option key={t} value={t}>
@@ -182,34 +198,49 @@ export default function IncidentReports({ guest = false }) {
             />
           </label>
 
-          <label className="file-input">
+          <label>
             Upload File
-            <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+            <input
+              type="file"
+              onChange={(e) => setFile(e.target.files[0])}
+            />
           </label>
 
-          <div className="gps-status">
+          <div style={{ margin: "8px 0" }}>
             {sharing ? (
-              <button type="button" className="stop-btn" onClick={stopSharing}>
+              <button
+                type="button"
+                onClick={stopSharing}
+                style={{ backgroundColor: "#c0392b", color: "#fff", marginRight: 8 }}
+              >
                 Stop Sharing Location
               </button>
             ) : (
-              <button type="button" className="start-btn" onClick={startSharing}>
+              <button
+                type="button"
+                onClick={startSharing}
+                style={{ backgroundColor: "#27ae60", color: "#fff", marginRight: 8 }}
+              >
                 Start Sharing Location
               </button>
             )}
             {location && (
               <span>
-                &nbsp;Location: {location.latitude.toFixed(5)}, {location.longitude.toFixed(5)}
+                Location: {location.latitude.toFixed(5)}, {location.longitude.toFixed(5)}
               </span>
             )}
           </div>
 
-          <button type="submit" className="submit-btn">
+          <button
+            type="submit"
+            style={{ backgroundColor: "#27ae60", color: "#fff", padding: 8, border: "none", borderRadius: 6 }}
+          >
             Submit Incident
           </button>
         </form>
       )}
 
+      {/* Map Tab */}
       {activeTab === "View Map" && (
         <div style={{ height: 400 }}>
           <MapContainer
@@ -236,6 +267,7 @@ export default function IncidentReports({ guest = false }) {
         </div>
       )}
 
+      {/* Upload File Tab */}
       {activeTab === "Upload File" && (
         <div>
           <p>Select a file to attach to an incident when reporting.</p>
