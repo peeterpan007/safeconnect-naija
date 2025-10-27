@@ -1,280 +1,56 @@
-// src/components/IncidentReports.jsx
-import React, { useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { useIncidents } from "./IncidentContext";
-import IncidentIcon from "../assets/IncidentReporting.png";
-import "leaflet/dist/leaflet.css";
+.incident-tabs {
+  display: flex;
+  margin-top: 12px;
+  margin-bottom: 16px;
+}
 
-// Example state/LGA data
-const STATES_LGAS = {
-  Lagos: ["Ikeja", "Epe", "Surulere", "Ikorodu"],
-  Abuja: ["Garki", "Wuse", "Maitama", "Asokoro"],
-  Kano: ["Nasarawa", "Fagge", "Dala", "Tarauni"],
-  Rivers: ["Port Harcourt", "Obio-Akpor", "Okrika", "Bonny"],
-};
+.incident-tab {
+  flex: 1;
+  padding: 10px;
+  margin-right: 4px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #ecf0f1;
+  color: #000;
+  transition: background-color 0.3s;
+}
 
-// Titles
-const TITLES = ["Theft", "Accident", "Disturbance", "Suspicious Activity"];
+.incident-tab.active {
+  background-color: #27ae60; /* green */
+  color: #fff;
+}
 
-// Tabs
-const TABS = ["Report Incident", "View Map", "Upload File"];
+.incident-form label {
+  display: block;
+  margin-bottom: 8px;
+}
 
-export default function IncidentReports({ guest = false }) {
-  const { incidents, addIncident } = useIncidents();
+.incident-form select,
+.incident-form input[type="text"],
+.incident-form textarea,
+.incident-form input[type="file"] {
+  display: block;
+  width: 100%;
+  padding: 6px;
+  margin-top: 4px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
 
-  const [activeTab, setActiveTab] = useState("Report Incident");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [state, setState] = useState("");
-  const [lga, setLga] = useState("");
-  const [address, setAddress] = useState("");
-  const [location, setLocation] = useState(null);
-  const [sharing, setSharing] = useState(false);
-  const [error, setError] = useState("");
-  const [file, setFile] = useState(null);
+.incident-form button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+}
 
-  const lgaOptions = state ? STATES_LGAS[state] || [] : [];
+.start-btn {
+  background-color: #27ae60;
+}
 
-  const startSharing = () => {
-    if (!navigator.geolocation) {
-      setError("Geolocation not supported");
-      return;
-    }
-    setSharing(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) =>
-        setLocation({
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-        }),
-      (err) => {
-        setError(err.message);
-        setSharing(false);
-      },
-      { enableHighAccuracy: true }
-    );
-  };
-
-  const stopSharing = () => {
-    setSharing(false);
-    setLocation(null);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!title || !state || !lga) {
-      setError("Please fill all required fields");
-      return;
-    }
-    addIncident({
-      id: Date.now(),
-      title,
-      description,
-      state,
-      lga,
-      address,
-      location,
-      file,
-      user: guest ? "Guest" : "User",
-    });
-    // Reset form
-    setTitle("");
-    setDescription("");
-    setState("");
-    setLga("");
-    setAddress("");
-    setLocation(null);
-    setSharing(false);
-    setFile(null);
-    setError("");
-  };
-
-  return (
-    <div style={{ padding: 12, fontFamily: "Arial, sans-serif" }}>
-      <h3 style={{ display: "flex", alignItems: "center", color: "#066c4a" }}>
-        <img
-          src={IncidentIcon}
-          alt="Incident Reporting"
-          style={{ width: 32, marginRight: 8 }}
-        />
-        Incident Reporting
-      </h3>
-
-      {/* Tabs */}
-      <div style={{ display: "flex", marginTop: 12, marginBottom: 16 }}>
-        {TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            style={{
-              flex: 1,
-              padding: 8,
-              marginRight: 4,
-              backgroundColor: activeTab === tab ? "#27ae60" : "#ecf0f1",
-              color: activeTab === tab ? "#fff" : "#000",
-              border: "none",
-              borderRadius: 6,
-              cursor: "pointer",
-            }}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === "Report Incident" && (
-        <form onSubmit={handleSubmit} style={{ marginBottom: 16 }}>
-          {error && <p style={{ color: "red" }}>{error}</p>}
-
-          <label>
-            Title <span style={{ color: "red" }}>*</span>
-            <select
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            >
-              <option value="">Select Title</option>
-              {TITLES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            Description
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Optional"
-            />
-          </label>
-
-          <label>
-            State <span style={{ color: "red" }}>*</span>
-            <select
-              value={state}
-              onChange={(e) => {
-                setState(e.target.value);
-                setLga("");
-              }}
-              required
-            >
-              <option value="">Select State</option>
-              {Object.keys(STATES_LGAS).map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            LGA <span style={{ color: "red" }}>*</span>
-            <select
-              value={lga}
-              onChange={(e) => setLga(e.target.value)}
-              required
-              disabled={!state}
-            >
-              <option value="">Select LGA</option>
-              {lgaOptions.map((l) => (
-                <option key={l} value={l}>
-                  {l}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            Address
-            <input
-              type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="Optional"
-            />
-          </label>
-
-          <label>
-            Upload File
-            <input
-              type="file"
-              onChange={(e) => setFile(e.target.files[0])}
-            />
-          </label>
-
-          <div style={{ margin: "8px 0" }}>
-            {sharing ? (
-              <button
-                type="button"
-                onClick={stopSharing}
-                style={{ backgroundColor: "#c0392b", color: "#fff", marginRight: 8 }}
-              >
-                Stop Sharing Location
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={startSharing}
-                style={{ backgroundColor: "#27ae60", color: "#fff", marginRight: 8 }}
-              >
-                Start Sharing Location
-              </button>
-            )}
-            {location && (
-              <span>
-                Location: {location.latitude.toFixed(5)}, {location.longitude.toFixed(5)}
-              </span>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            style={{ backgroundColor: "#27ae60", color: "#fff", padding: 8, border: "none", borderRadius: 6 }}
-          >
-            Submit Incident
-          </button>
-        </form>
-      )}
-
-      {/* Map Tab */}
-      {activeTab === "View Map" && (
-        <div style={{ height: 400 }}>
-          <MapContainer
-            center={[6.5244, 3.3792]}
-            zoom={6}
-            style={{ height: "100%", width: "100%" }}
-          >
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            {incidents
-              .filter((i) => i.location)
-              .map((i) => (
-                <Marker
-                  key={i.id}
-                  position={[i.location.latitude, i.location.longitude]}
-                >
-                  <Popup>
-                    <strong>{i.title}</strong> <br />
-                    {i.description || "No description"} <br />
-                    {i.address || ""}
-                  </Popup>
-                </Marker>
-              ))}
-          </MapContainer>
-        </div>
-      )}
-
-      {/* Upload File Tab */}
-      {activeTab === "Upload File" && (
-        <div>
-          <p>Select a file to attach to an incident when reporting.</p>
-          <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-          {file && <p>Selected file: {file.name}</p>}
-        </div>
-      )}
-    </div>
-  );
+.stop-btn {
+  background-color: #c0392b;
 }
