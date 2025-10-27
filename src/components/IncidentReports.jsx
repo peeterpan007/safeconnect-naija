@@ -1,197 +1,134 @@
-import React, { useState, useEffect } from "react";
-import { useIncident } from "./IncidentContext";
-import { useUser } from "./UserContext";
+// src/components/IncidentReport.jsx
+import React, { useState } from "react";
+import { useIncidents } from "./IncidentContext";
 
-export default function IncidentReports({ guest = false }) {
-  const { addIncident, incidents } = useIncident();
-  const { user } = useUser();
+const statesAndLGAs = {
+  Lagos: ["Ikeja", "Epe", "Badagry"],
+  Abuja: ["Garki", "Wuse", "Asokoro"],
+  // add other states and LGAs as needed
+};
 
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    state: "",
-    lga: "",
-    address: "",
-    latitude: "",
-    longitude: "",
-    image: "",
-  });
+export default function IncidentReport() {
+  const { addIncident } = useIncidents();
 
-  const [locationPermission, setLocationPermission] = useState(false);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [state, setState] = useState("");
+  const [lga, setLGA] = useState("");
+  const [address, setAddress] = useState("");
 
-  const incidentTitles = [
-    "Fire Outbreak",
-    "Road Accident",
-    "Flooding",
-    "Building Collapse",
-    "Crime or Robbery",
-    "Public Disturbance",
-    "Health Emergency",
-    "Other",
-  ];
-
-  // Automatically detect geolocation
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setFormData((prev) => ({
-            ...prev,
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-          }));
-          setLocationPermission(true);
-        },
-        () => setLocationPermission(false)
-      );
-    }
-  }, []);
-
-  // Handle changes
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (files && files[0]) {
-      setFormData((prev) => ({ ...prev, image: files[0] }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  // Submit (allow empty fields)
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    const newIncident = {
-      ...formData,
+    if (!title || !state || !lga) {
+      alert("Please fill in Title, State, and LGA");
+      return;
+    }
+    addIncident({
       id: Date.now(),
-      user: user?.email || "Guest User",
-      createdAt: new Date().toISOString(),
-    };
-
-    addIncident(newIncident);
-    alert("Incident added successfully!");
-
-    setFormData({
-      title: "",
-      description: "",
-      state: "",
-      lga: "",
-      address: "",
-      latitude: "",
-      longitude: "",
-      image: "",
+      title,
+      description,
+      state,
+      lga,
+      address,
+      user: "Anonymous",
+      location: null, // optional: add GPS location if available
     });
+    // reset form
+    setTitle("");
+    setDescription("");
+    setState("");
+    setLGA("");
+    setAddress("");
   };
 
   return (
-    <div className="incident-report-container" style={{ padding: 16 }}>
-      <h2 className="text-xl font-semibold mb-2">Report an Incident</h2>
+    <div
+      style={{
+        maxWidth: 500,
+        margin: "auto",
+        padding: 16,
+        borderRadius: 12,
+        boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
+        backgroundColor: "#f9f9f9",
+      }}
+    >
+      <h3 style={{ color: "#066c4a", marginBottom: 16 }}>Add Incident</h3>
+      <form
+        onSubmit={handleSubmit}
+        style={{ display: "flex", flexDirection: "column", gap: 12 }}
+      >
+        <input
+          type="text"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc" }}
+        />
 
-      <form onSubmit={handleSubmit} className="incident-form">
-        {/* Title Dropdown */}
-        <label className="form-label">Incident Title</label>
+        <textarea
+          placeholder="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3}
+          style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc" }}
+        />
+
         <select
-          name="title"
-          value={formData.title}
-          onChange={handleChange}
-          className="form-input"
+          value={state}
+          onChange={(e) => {
+            setState(e.target.value);
+            setLGA(""); // reset LGA when state changes
+          }}
+          required
+          style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc" }}
         >
-          <option value="">-- Select Incident Type --</option>
-          {incidentTitles.map((title) => (
-            <option key={title} value={title}>
-              {title}
+          <option value="">Select State</option>
+          {Object.keys(statesAndLGAs).map((st) => (
+            <option key={st} value={st}>
+              {st}
             </option>
           ))}
         </select>
 
-        {/* Description */}
-        <label className="form-label">Description</label>
-        <textarea
-          name="description"
-          placeholder="Describe the incident..."
-          value={formData.description}
-          onChange={handleChange}
-          className="form-input"
-        />
+        <select
+          value={lga}
+          onChange={(e) => setLGA(e.target.value)}
+          required
+          disabled={!state}
+          style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc" }}
+        >
+          <option value="">{state ? "Select LGA" : "Select State first"}</option>
+          {state &&
+            statesAndLGAs[state].map((l) => (
+              <option key={l} value={l}>
+                {l}
+              </option>
+            ))}
+        </select>
 
-        {/* Location Info */}
-        <label className="form-label">State</label>
         <input
           type="text"
-          name="state"
-          placeholder="Enter state"
-          value={formData.state}
-          onChange={handleChange}
-          className="form-input"
+          placeholder="Address (optional)"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+          style={{ padding: 8, borderRadius: 6, border: "1px solid #ccc" }}
         />
 
-        <label className="form-label">LGA</label>
-        <input
-          type="text"
-          name="lga"
-          placeholder="Enter LGA"
-          value={formData.lga}
-          onChange={handleChange}
-          className="form-input"
-        />
-
-        <label className="form-label">Address</label>
-        <input
-          type="text"
-          name="address"
-          placeholder="Enter address"
-          value={formData.address}
-          onChange={handleChange}
-          className="form-input"
-        />
-
-        {/* Auto-location feedback */}
-        <p className="text-sm text-gray-500 mt-1">
-          {locationPermission
-            ? `Location detected: ${formData.latitude}, ${formData.longitude}`
-            : "Allow location access to automatically detect your position."}
-        </p>
-
-        {/* Image upload */}
-        <label className="form-label">Attach Image (optional)</label>
-        <input type="file" accept="image/*" name="image" onChange={handleChange} />
-
-        <button type="submit" className="submit-btn mt-3">
-          Add Incident
+        <button
+          type="submit"
+          style={{
+            padding: 10,
+            backgroundColor: "#28a745", // green for Add Incident
+            color: "white",
+            border: "none",
+            borderRadius: 6,
+            cursor: "pointer",
+          }}
+        >
+          Submit
         </button>
       </form>
-
-      {/* Existing incidents list */}
-      <div className="incident-list mt-6">
-        <h3 className="text-lg font-semibold mb-2">Recent Incidents</h3>
-        {incidents.length === 0 ? (
-          <p>No incidents reported yet.</p>
-        ) : (
-          <ul className="space-y-2">
-            {incidents.map((incident) => (
-              <li
-                key={incident.id}
-                className="border rounded-lg p-2 bg-gray-50 shadow-sm"
-              >
-                <strong>{incident.title || "Untitled Incident"}</strong>
-                <p>{incident.description || "No description"}</p>
-                <small>
-                  {incident.state && incident.lga
-                    ? `${incident.state}, ${incident.lga}`
-                    : "No location"}
-                </small>
-                <br />
-                <small>
-                  Reported by:{" "}
-                  {incident.user === "Guest User"
-                    ? "Guest"
-                    : incident.user}
-                </small>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
     </div>
   );
 }
