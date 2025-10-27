@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { useIncidents } from "./IncidentContext";
+import { useIncident } from "./IncidentContext"; // ✅ Fixed import name
 
 // Fix Leaflet default icon URLs (important for production)
 delete L.Icon.Default.prototype._getIconUrl;
@@ -35,7 +35,7 @@ function FitBounds({ incidents }) {
 }
 
 export default function IncidentMap() {
-  const { incidents } = useIncidents();
+  const { incidents } = useIncident(); // ✅ fixed usage
 
   // group by state
   const grouped = incidents.reduce((acc, inc) => {
@@ -75,12 +75,20 @@ export default function IncidentMap() {
       ) : (
         Object.entries(grouped).map(([st, arr]) => (
           <div key={st} style={{ marginBottom: 12 }}>
-            <h5 style={{ margin: "6px 0" }}>{st} ({arr.length})</h5>
+            <h5 style={{ margin: "6px 0" }}>
+              {st} ({arr.length})
+            </h5>
             <ul>
               {arr.map((i) => (
                 <li key={i.id}>
-                  <strong>{i.title}</strong> — {i.description || "No description"}<br />
-                  <small>{i.address || (i.location ? `${i.location.latitude.toFixed(5)}, ${i.location.longitude.toFixed(5)}` : "No location")}</small>
+                  <strong>{i.title}</strong> — {i.description || "No description"}
+                  <br />
+                  <small>
+                    {i.address ||
+                      (i.location
+                        ? `${i.location.latitude.toFixed(5)}, ${i.location.longitude.toFixed(5)}`
+                        : "No location")}
+                  </small>
                 </li>
               ))}
             </ul>
